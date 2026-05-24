@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.messenger.controller.ChatController"
+            stylesheets="@../css/style.css">
+
+    <!-- LEFT PANEL -->
+
+    <left>
+
+        <VBox prefWidth="250"
+              spacing="10"
+              styleClass="left-panel">
+
+            <TextField fx:id="searchField"
+                       promptText="Search user..."/>
+
+            <ListView fx:id="dialogsList"
+                      VBox.vgrow="ALWAYS"/>
+
+            <Label text="Your chat list is empty"
+                   fx:id="emptyLabel"/>
+
+        </VBox>
+
+    </left>
+
+    <!-- CHAT AREA -->
+
+    <center>
+
+        <VBox spacing="10">
+
+            <!-- HEADER -->
+
+            <VBox styleClass="chat-header"
+                  spacing="2">
+
+                <Label fx:id="nameLabel"
+                       text="Select chat"
+                       styleClass="chat-name"/>
+
+                <Label fx:id="usernameLabel"
+                       text=""
+                       styleClass="chat-username"/>
+
+            </VBox>
+
+            <!-- MESSAGES -->
+
+            <TextArea fx:id="chatArea"
+                      editable="false"
+                      VBox.vgrow="ALWAYS"/>
+
+            <!-- INPUT -->
+
+            <HBox spacing="10"
+                  style="-fx-padding: 10;">
+
+                <TextField fx:id="messageField"
+                           promptText="Enter message..."
+                           HBox.hgrow="ALWAYS"/>
+
+                <Button text="Send"
+                        fx:id="sendButton"/>
+
+            </HBox>
+
+        </VBox>
+
+    </center>
+
+</BorderPane>
