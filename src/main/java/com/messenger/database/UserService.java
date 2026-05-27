@@ -1,11 +1,15 @@
 package com.messenger.database;
 
+import com.messenger.model.User;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UserService {
+
+    // REGISTER
 
     public static boolean registerUser(
             String name,
@@ -30,9 +34,13 @@ public class UserService {
 
         } catch (SQLException e) {
 
+            System.out.println("User already exists");
+
             return false;
         }
     }
+
+    // LOGIN
 
     public static boolean loginUser(
             String username,
@@ -49,7 +57,8 @@ public class UserService {
             statement.setString(1, username);
             statement.setString(2, password);
 
-            ResultSet resultSet = statement.executeQuery();
+            ResultSet resultSet =
+                    statement.executeQuery();
 
             return resultSet.next();
 
@@ -59,5 +68,43 @@ public class UserService {
 
             return false;
         }
+    }
+
+    // SEARCH USER
+
+    public static User findUserByUsername(
+            String username
+    ) {
+
+        String sql =
+                "SELECT * FROM users WHERE username=?";
+
+        try (Connection connection = Database.connect();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setString(1, username);
+
+            ResultSet resultSet =
+                    statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                String name =
+                        resultSet.getString("name");
+
+                return new User(
+                        name,
+                        username
+                );
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+        }
+
+        return null;
     }
 }

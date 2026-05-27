@@ -7,19 +7,30 @@ import java.util.List;
 public class MessageService {
 
     public static void saveMessage(
-            String username,
+            int dialogId,
+            String sender,
+            String receiver,
             String message
     ) {
 
-        String sql =
-                "INSERT INTO messages(username, message) VALUES(?, ?)";
+        String sql = """
+                INSERT INTO messages(
+                    dialog_id,
+                    sender,
+                    receiver,
+                    message
+                )
+                VALUES(?, ?, ?, ?)
+                """;
 
         try (Connection connection = Database.connect();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-            statement.setString(1, username);
-            statement.setString(2, message);
+            statement.setInt(1, dialogId);
+            statement.setString(2, sender);
+            statement.setString(3, receiver);
+            statement.setString(4, message);
 
             statement.executeUpdate();
 
@@ -30,30 +41,38 @@ public class MessageService {
         }
     }
 
-    public static List<String> loadMessages() {
+    public static List<String> loadMessages(
+            int dialogId
+    ) {
 
         List<String> messages =
                 new ArrayList<>();
 
-        String sql =
-                "SELECT * FROM messages";
+        String sql = """
+                SELECT * FROM messages
+                WHERE dialog_id=?
+                ORDER BY timestamp
+                """;
 
         try (Connection connection = Database.connect();
-             Statement statement =
-                     connection.createStatement();
-             ResultSet resultSet =
-                     statement.executeQuery(sql)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setInt(1, dialogId);
+
+            ResultSet resultSet =
+                    statement.executeQuery();
 
             while (resultSet.next()) {
 
-                String username =
-                        resultSet.getString("username");
+                String sender =
+                        resultSet.getString("sender");
 
                 String message =
                         resultSet.getString("message");
 
                 messages.add(
-                        username + ": " + message
+                        sender + ": " + message
                 );
             }
 

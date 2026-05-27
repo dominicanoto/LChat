@@ -1,0 +1,79 @@
+package com.messenger.database;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DialogService {
+
+    public static int getOrCreateDialog(
+            String user1,
+            String user2
+    ) {
+
+        String selectSql = """
+                SELECT id FROM dialogs
+                WHERE
+                (user1=? AND user2=?)
+                OR
+                (user1=? AND user2=?)
+                """;
+
+        try (Connection connection = Database.connect();
+             PreparedStatement select =
+                     connection.prepareStatement(selectSql)) {
+
+            select.setString(1, user1);
+            select.setString(2, user2);
+            select.setString(3, user2);
+            select.setString(4, user1);
+
+            ResultSet resultSet =
+                    select.executeQuery();
+
+            // Dialog already exists
+
+            if (resultSet.next()) {
+
+                return resultSet.getInt("id");
+
+            }
+
+            // Create new dialog
+
+            String insertSql = """
+                    INSERT INTO dialogs(user1, user2)
+                    VALUES(?, ?)
+                    """;
+
+            PreparedStatement insert =
+                    connection.prepareStatement(
+                            insertSql,
+                            Statement.RETURN_GENERATED_KEYS
+                    );
+
+            insert.setString(1, user1);
+            insert.setString(2, user2);
+
+            insert.executeUpdate();
+
+            ResultSet generatedKeys =
+                    insert.getGeneratedKeys();
+
+            if (generatedKeys.next()) {
+
+                return generatedKeys.getInt(1);
+
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+        }
+
+        return -1;
+    }
+}

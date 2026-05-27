@@ -1,15 +1,26 @@
 package com.messenger.controller;
 
 import com.messenger.client.Session;
-import com.messenger.client.SocketClient;
+import com.messenger.database.DialogService;
 import com.messenger.database.MessageService;
-import javafx.application.Platform;
+import com.messenger.database.UserService;
+import com.messenger.model.User;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 public class ChatController {
+
+    @FXML
+    private TextField searchField;
+
+    @FXML
+    private ListView<User> dialogsList;
+
+    @FXML
+    private Label nameLabel;
+
+    @FXML
+    private Label usernameLabel;
 
     @FXML
     private TextArea chatArea;
@@ -20,55 +31,140 @@ public class ChatController {
     @FXML
     private Button sendButton;
 
-    private final SocketClient client =
-            new SocketClient();
+    @FXML
+    private Label emptyLabel;
+
+    private User selectedUser;
+
+    private int currentDialogId = -1;
 
     @FXML
     public void initialize() {
 
-        client.connect("127.0.0.1");
+        // Empty state
 
-        loadHistory();
+        chatArea.setVisible(false);
 
-        client.listenForMessages(message -> {
+        messageField.setVisible(false);
 
-            Platform.runLater(() -> {
+        sendButton.setVisible(false);
 
-                chatArea.appendText(
-                        message + "\n"
-                );
+        nameLabel.setText("Select a chat");
 
-            });
+        usernameLabel.setText("");
 
-        });
+        // Search user
 
-        sendButton.setOnAction(event -> {
-
-            String text =
-                    messageField.getText();
+        searchField.setOnAction(event -> {
 
             String username =
-                    Session.getUsername();
+                    searchField.getText();
 
-            String fullMessage =
-                    username + ": " + text;
+            User user =
+                    UserService.findUserByUsername(
+                            username
+                    );
 
-            client.sendMessage(fullMessage);
+            dialogsList.getItems().clear();
 
-            MessageService.saveMessage(
-                    username,
-                    text
-            );
+            if (user != null) {
 
-            messageField.clear();
+                dialogsList.getItems().add(user);
 
+                emptyLabel.setVisible(false);
+
+            } else {
+
+                emptyLabel.setVisible(true);
+            }
+        });
+
+        // Open chat
+
+        dialogsList.setOnMouseClicked(event -> {
+
+            selectedUser =
+                    dialogsList.getSelectionModel()
+                            .getSelectedItem();
+
+            if (selectedUser != null) {
+
+                openChat(selectedUser);
+
+            }
         });
     }
 
-    private void loadHistory() {
+    private void openChat(User user) {
+
+        nameLabel.setText(
+                user.getName()
+        );
+
+        usernameLabel.setText(
+                "@" + user.getUsername()
+        );
+
+        chatArea.setVisible(true);
+
+        messageField.setVisible(true);
+
+        sendButton.setVisible(true);
+
+        currentDialogId =
+                DialogService.getOrCreateDialog(
+                        Session.getUsername(),
+                        user.getUsername()
+                );
+
+        loadMessages();
+
+        sendButton.setOnAction(
+                event -> sendMessage()
+        );
+    }
+
+    private void sendMessage() {
+
+        if (selectedUser == null) {
+            return;
+        }
+
+        String text =
+                messageField.getText();
+
+        if (text.isBlank()) {
+            return;
+        }
+
+        String sender =
+                Session.getUsername();
+
+        String receiver =
+                selectedUser.getUsername();
+
+        MessageService.saveMessage(
+                currentDialogId,
+                sender,
+                receiver,
+                text
+        );
+
+        chatArea.appendText(
+                sender + ": " + text + "\n"
+        );
+
+        messageField.clear();
+    }
+
+    private void loadMessages() {
+
+        chatArea.clear();
 
         for (String message :
-                MessageService.loadMessages()) {
+                MessageService.loadMessages(
+                        currentDialogId
+                )) {
 
             chatArea.appendText(
                     message + "\n"
