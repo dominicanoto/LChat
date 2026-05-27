@@ -23,7 +23,7 @@ public class Database {
                 CREATE TABLE IF NOT EXISTS users (
 
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    
+
                     name TEXT NOT NULL,
 
                     username TEXT UNIQUE NOT NULL,
@@ -33,14 +33,32 @@ public class Database {
                 );
                 """;
 
+        String dialogsTable = """
+                CREATE TABLE IF NOT EXISTS dialogs (
+
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                    user1 TEXT NOT NULL,
+
+                    user2 TEXT NOT NULL
+
+                );
+                """;
+
         String messagesTable = """
                 CREATE TABLE IF NOT EXISTS messages (
 
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-                    username TEXT NOT NULL,
+                    dialog_id INTEGER NOT NULL,
 
-                    message TEXT NOT NULL
+                    sender TEXT NOT NULL,
+
+                    receiver TEXT NOT NULL,
+
+                    message TEXT NOT NULL,
+
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 
                 );
                 """;
@@ -50,6 +68,8 @@ public class Database {
                      connection.createStatement()) {
 
             statement.execute(usersTable);
+
+            statement.execute(dialogsTable);
 
             statement.execute(messagesTable);
 
