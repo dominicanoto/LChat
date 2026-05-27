@@ -5,8 +5,11 @@ import com.messenger.database.DialogService;
 import com.messenger.database.MessageService;
 import com.messenger.database.UserService;
 import com.messenger.model.User;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
+import java.util.List;
 
 public class ChatController {
 
@@ -52,6 +55,10 @@ public class ChatController {
         nameLabel.setText("Select a chat");
 
         usernameLabel.setText("");
+
+        // Load dialogs
+
+        loadDialogs();
 
         // Search user
 
@@ -155,6 +162,8 @@ public class ChatController {
         );
 
         messageField.clear();
+
+        loadDialogs();
     }
 
     private void loadMessages() {
@@ -170,5 +179,31 @@ public class ChatController {
                     message + "\n"
             );
         }
+    }
+
+    private void loadDialogs() {
+
+        dialogsList.getItems().clear();
+
+        List<String> dialogs =
+                DialogService.loadUserDialogs(
+                        Session.getUsername()
+                );
+
+        for (String username : dialogs) {
+
+            User user =
+                    UserService.getUser(username);
+
+            if (user != null) {
+
+                dialogsList.getItems().add(user);
+
+            }
+        }
+
+        emptyLabel.setVisible(
+                dialogs.isEmpty()
+        );
     }
 }

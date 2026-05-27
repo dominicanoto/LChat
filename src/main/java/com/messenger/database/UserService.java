@@ -107,4 +107,40 @@ public class UserService {
 
         return null;
     }
+
+    public static User getUser(
+            String username
+    ) {
+
+        String sql =
+                "SELECT * FROM users WHERE username=?";
+
+        try (Connection connection = Database.connect();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setString(1, username);
+
+            ResultSet resultSet =
+                    statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                String name =
+                        resultSet.getString("name");
+
+                return new User(
+                        name,
+                        username
+                );
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+        }
+
+        return null;
+    }
 }
