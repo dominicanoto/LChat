@@ -1,15 +1,21 @@
 package com.messenger.controller;
 
 import com.messenger.client.Session;
+import com.messenger.client.SocketClient;
+
 import com.messenger.database.DialogService;
 import com.messenger.database.MessageService;
 import com.messenger.database.UserService;
+
 import com.messenger.model.User;
 
 import javafx.fxml.FXML;
+
 import javafx.scene.control.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class ChatController {
 
@@ -41,10 +47,12 @@ public class ChatController {
 
     private int currentDialogId = -1;
 
+    private final Map<String, Integer>
+            unreadMessages =
+            new HashMap<>();
+
     @FXML
     public void initialize() {
-
-        // Empty state
 
         chatArea.setVisible(false);
 
@@ -52,15 +60,64 @@ public class ChatController {
 
         sendButton.setVisible(false);
 
-        nameLabel.setText("Select a chat");
+        nameLabel.setText(
+                "Select a chat"
+        );
 
         usernameLabel.setText("");
 
-        // Load dialogs
-
         loadDialogs();
 
-        // Search user
+        dialogsList.setCellFactory(list ->
+                new ListCell<>() {
+
+                    @Override
+                    protected void updateItem(
+                            User user,
+                            boolean empty
+                    ) {
+
+                        super.updateItem(
+                                user,
+                                empty
+                        );
+
+                        if (empty || user == null) {
+
+                            setText(null);
+
+                        } else {
+
+                            int unread =
+                                    unreadMessages
+                                            .getOrDefault(
+                                                    user.getUsername(),
+                                                    0
+                                            );
+
+                            if (unread > 0) {
+
+                                setText(
+                                        user.getName() +
+                                                " (@" +
+                                                user.getUsername() +
+                                                ") [" +
+                                                unread +
+                                                "]"
+                                );
+
+                            } else {
+
+                                setText(
+                                        user.getName() +
+                                                " (@" +
+                                                user.getUsername() +
+                                                ")"
+                                );
+                            }
+                        }
+                    }
+                });
 
         searchField.setOnAction(event -> {
 
@@ -83,10 +140,9 @@ public class ChatController {
             } else {
 
                 emptyLabel.setVisible(true);
+
             }
         });
-
-        // Open chat
 
         dialogsList.setOnMouseClicked(event -> {
 
@@ -98,6 +154,50 @@ public class ChatController {
 
                 openChat(selectedUser);
 
+            }
+        });
+
+        SocketClient.listen(message -> {
+
+            int separator =
+                    message.indexOf(":");
+
+            if (separator == -1) {
+                return;
+            }
+
+            String sender =
+                    message.substring(
+                            0,
+                            separator
+                    );
+
+            String text =
+                    message.substring(
+                            separator + 1
+                    );
+
+            if (selectedUser != null &&
+                    selectedUser.getUsername()
+                            .equals(sender)) {
+
+                chatArea.appendText(
+                        sender + ": " +
+                                text + "\n"
+                );
+
+            } else {
+
+                unreadMessages.put(
+                        sender,
+                        unreadMessages
+                                .getOrDefault(
+                                        sender,
+                                        0
+                                ) + 1
+                );
+
+                updateDialogs();
             }
         });
     }
@@ -125,6 +225,12 @@ public class ChatController {
                 );
 
         loadMessages();
+
+        unreadMessages.remove(
+                user.getUsername()
+        );
+
+        updateDialogs();
 
         sendButton.setOnAction(
                 event -> sendMessage()
@@ -157,8 +263,14 @@ public class ChatController {
                 text
         );
 
+        SocketClient.sendMessage(
+                receiver,
+                text
+        );
+
         chatArea.appendText(
-                sender + ": " + text + "\n"
+                sender + ": " +
+                        text + "\n"
         );
 
         messageField.clear();
@@ -193,7 +305,9 @@ public class ChatController {
         for (String username : dialogs) {
 
             User user =
-                    UserService.getUser(username);
+                    UserService.getUser(
+                            username
+                    );
 
             if (user != null) {
 
@@ -205,5 +319,10 @@ public class ChatController {
         emptyLabel.setVisible(
                 dialogs.isEmpty()
         );
+    }
+
+    private void updateDialogs() {
+
+        dialogsList.refresh();
     }
 }

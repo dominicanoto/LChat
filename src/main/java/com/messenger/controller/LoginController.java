@@ -1,11 +1,15 @@
 package com.messenger.controller;
 
 import com.messenger.client.Session;
+import com.messenger.client.SocketClient;
 import com.messenger.database.UserService;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+
 import javafx.stage.Stage;
 
 public class LoginController {
@@ -51,6 +55,8 @@ public class LoginController {
         if (success) {
 
             Session.setUsername(username);
+
+            SocketClient.connect(username);
 
             openChatWindow();
 

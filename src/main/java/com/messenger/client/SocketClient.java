@@ -1,51 +1,72 @@
 package com.messenger.client;
 
+import javafx.application.Platform;
+
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class SocketClient {
 
-    private Socket socket;
+    private static Socket socket;
 
-    private PrintWriter writer;
+    private static BufferedReader reader;
 
-    private BufferedReader reader;
+    private static PrintWriter writer;
 
-    public void connect(String host) {
+    public static void connect(
+            String username
+    ) {
 
         try {
 
-            socket = new Socket(host, 1234);
+            socket =
+                    new Socket(
+                            "localhost",
+                            12345
+                    );
 
-            writer = new PrintWriter(
-                    new OutputStreamWriter(
-                            socket.getOutputStream(),
-                            java.nio.charset.StandardCharsets.UTF_8
-                    ),
-                    true
-            );
+            reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    socket.getInputStream(),
+                                    StandardCharsets.UTF_8
+                            )
+                    );
 
-            reader = new BufferedReader(
-                    new InputStreamReader(
-                            socket.getInputStream(),
-                            java.nio.charset.StandardCharsets.UTF_8
-                    )
-            );
+            writer =
+                    new PrintWriter(
+                            new OutputStreamWriter(
+                                    socket.getOutputStream(),
+                                    StandardCharsets.UTF_8
+                            ),
+                            true
+                    );
 
-            System.out.println("Connected!");
+            // Send username to server
+
+            writer.println(username);
 
         } catch (IOException e) {
+
             e.printStackTrace();
+
         }
     }
 
-    public void sendMessage(String message) {
+    public static void sendMessage(
+            String receiver,
+            String message
+    ) {
 
-        writer.println(message);
-
+        writer.println(
+                receiver + ":" + message
+        );
     }
 
-    public void listenForMessages(MessageListener listener) {
+    public static void listen(
+            MessageListener listener
+    ) {
 
         new Thread(() -> {
 
@@ -53,14 +74,23 @@ public class SocketClient {
 
                 String message;
 
-                while ((message = reader.readLine()) != null) {
+                while ((message =
+                        reader.readLine()) != null) {
 
-                    listener.onMessage(message);
+                    String finalMessage =
+                            message;
 
+                    Platform.runLater(() ->
+                            listener.onMessage(
+                                    finalMessage
+                            )
+                    );
                 }
 
             } catch (IOException e) {
+
                 e.printStackTrace();
+
             }
 
         }).start();
