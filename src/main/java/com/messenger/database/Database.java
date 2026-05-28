@@ -14,12 +14,21 @@ public class Database {
             throws SQLException {
 
         return DriverManager.getConnection(URL);
-
     }
 
     public static void initialize() {
 
-        String usersTable = """
+        createUsersTable();
+
+        createDialogsTable();
+
+        createMessagesTable();
+    }
+
+    private static void createUsersTable() {
+
+        String sql =
+                """
                 CREATE TABLE IF NOT EXISTS users (
 
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,12 +37,19 @@ public class Database {
 
                     username TEXT UNIQUE NOT NULL,
 
-                    password TEXT NOT NULL
+                    password TEXT NOT NULL,
 
-                );
+                    last_seen TEXT
+                )
                 """;
 
-        String dialogsTable = """
+        execute(sql);
+    }
+
+    private static void createDialogsTable() {
+
+        String sql =
+                """
                 CREATE TABLE IF NOT EXISTS dialogs (
 
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,11 +57,16 @@ public class Database {
                     user1 TEXT NOT NULL,
 
                     user2 TEXT NOT NULL
-
-                );
+                )
                 """;
 
-        String messagesTable = """
+        execute(sql);
+    }
+
+    private static void createMessagesTable() {
+
+        String sql =
+                """
                 CREATE TABLE IF NOT EXISTS messages (
 
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,31 +77,32 @@ public class Database {
 
                     receiver TEXT NOT NULL,
 
-                    message TEXT NOT NULL,
+                    text TEXT NOT NULL,
 
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-
-                );
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
                 """;
 
-        try (Connection connection = connect();
-             Statement statement =
-                     connection.createStatement()) {
+        execute(sql);
+    }
 
-            statement.execute(usersTable);
+    private static void execute(
+            String sql
+    ) {
 
-            statement.execute(dialogsTable);
+        try (
+                Connection connection =
+                        connect();
 
-            statement.execute(messagesTable);
+                Statement statement =
+                        connection.createStatement()
+        ) {
 
-            System.out.println(
-                    "Database initialized!"
-            );
+            statement.execute(sql);
 
         } catch (SQLException e) {
 
             e.printStackTrace();
-
         }
     }
 }

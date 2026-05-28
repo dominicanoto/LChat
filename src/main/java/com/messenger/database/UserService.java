@@ -2,14 +2,9 @@ package com.messenger.database;
 
 import com.messenger.model.User;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class UserService {
-
-    // REGISTER
 
     public static boolean registerUser(
             String name,
@@ -20,12 +15,18 @@ public class UserService {
         String sql =
                 "INSERT INTO users(name, username, password) VALUES(?, ?, ?)";
 
-        try (Connection connection = Database.connect();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
 
             statement.setString(1, name);
+
             statement.setString(2, username);
+
             statement.setString(3, password);
 
             statement.executeUpdate();
@@ -34,13 +35,11 @@ public class UserService {
 
         } catch (SQLException e) {
 
-            System.out.println("User already exists");
+            e.printStackTrace();
 
             return false;
         }
     }
-
-    // LOGIN
 
     public static boolean loginUser(
             String username,
@@ -48,13 +47,18 @@ public class UserService {
     ) {
 
         String sql =
-                "SELECT * FROM users WHERE username=? AND password=?";
+                "SELECT * FROM users WHERE username = ? AND password = ?";
 
-        try (Connection connection = Database.connect();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
 
             statement.setString(1, username);
+
             statement.setString(2, password);
 
             ResultSet resultSet =
@@ -70,18 +74,20 @@ public class UserService {
         }
     }
 
-    // SEARCH USER
-
     public static User findUserByUsername(
             String username
     ) {
 
         String sql =
-                "SELECT * FROM users WHERE username=?";
+                "SELECT * FROM users WHERE username = ?";
 
-        try (Connection connection = Database.connect();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
 
             statement.setString(1, username);
 
@@ -90,19 +96,15 @@ public class UserService {
 
             if (resultSet.next()) {
 
-                String name =
-                        resultSet.getString("name");
-
                 return new User(
-                        name,
-                        username
+                        resultSet.getString("name"),
+                        resultSet.getString("username")
                 );
             }
 
         } catch (SQLException e) {
 
             e.printStackTrace();
-
         }
 
         return null;
@@ -112,12 +114,51 @@ public class UserService {
             String username
     ) {
 
-        String sql =
-                "SELECT * FROM users WHERE username=?";
+        return findUserByUsername(username);
+    }
 
-        try (Connection connection = Database.connect();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
+    public static void updateLastSeen(
+            String username,
+            String lastSeen
+    ) {
+
+        String sql =
+                "UPDATE users SET last_seen = ? WHERE username = ?";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(1, lastSeen);
+
+            statement.setString(2, username);
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    public static String getLastSeen(
+            String username
+    ) {
+
+        String sql =
+                "SELECT last_seen FROM users WHERE username = ?";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
 
             statement.setString(1, username);
 
@@ -126,21 +167,16 @@ public class UserService {
 
             if (resultSet.next()) {
 
-                String name =
-                        resultSet.getString("name");
-
-                return new User(
-                        name,
-                        username
+                return resultSet.getString(
+                        "last_seen"
                 );
             }
 
         } catch (SQLException e) {
 
             e.printStackTrace();
-
         }
 
-        return null;
+        return "offline";
     }
 }

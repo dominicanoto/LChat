@@ -1,8 +1,13 @@
 package com.messenger.server;
 
+import com.messenger.database.UserService;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,6 +68,20 @@ public class Server {
     ) {
 
         clients.remove(username);
+
+        String time =
+                LocalDateTime.now()
+                        .format(
+                                DateTimeFormatter
+                                        .ofPattern(
+                                                "HH:mm"
+                                        )
+                        );
+
+        UserService.updateLastSeen(
+                username,
+                "last seen at " + time
+        );
 
         broadcast(
                 "SYSTEM_OFFLINE:" + username

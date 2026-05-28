@@ -14,9 +14,6 @@ import javafx.fxml.FXML;
 
 import javafx.scene.control.*;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -56,10 +53,6 @@ public class ChatController {
 
     private final Map<String, Integer>
             unreadMessages =
-            new HashMap<>();
-
-    private final Map<String, String>
-            lastSeenMap =
             new HashMap<>();
 
     @FXML
@@ -213,21 +206,6 @@ public class ChatController {
                 OnlineService.setOnline(
                         username,
                         false
-                );
-
-                String time =
-                        LocalDateTime.now()
-                                .format(
-                                        DateTimeFormatter
-                                                .ofPattern(
-                                                        "HH:mm"
-                                                )
-                                );
-
-                lastSeenMap.put(
-                        username,
-                        "last seen at " +
-                                time
                 );
 
                 updateDialogs();
@@ -461,9 +439,8 @@ public class ChatController {
         } else {
 
             statusLabel.setText(
-                    lastSeenMap.getOrDefault(
-                            selectedUser.getUsername(),
-                            "offline"
+                    UserService.getLastSeen(
+                            selectedUser.getUsername()
                     )
             );
         }
