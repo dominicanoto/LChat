@@ -3,47 +3,75 @@ package com.messenger.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
 
-    private static final int PORT = 1234;
+    private static final int PORT = 12345;
 
-    private static final List<ClientHandler> clients =
-            new ArrayList<>();
+    private static final Map<String, ClientHandler>
+            clients =
+            new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
 
-        System.out.println("Server started...");
+        System.out.println(
+                "Server started..."
+        );
 
         try (ServerSocket serverSocket =
                      new ServerSocket(PORT)) {
 
             while (true) {
 
-                Socket socket = serverSocket.accept();
+                Socket socket =
+                        serverSocket.accept();
 
                 System.out.println(
-                        "New client connected"
+                        "Client connected"
                 );
 
-                ClientHandler client =
+                ClientHandler clientHandler =
                         new ClientHandler(socket);
 
-                clients.add(client);
-
-                client.start();
+                new Thread(clientHandler).start();
             }
 
         } catch (IOException e) {
+
             e.printStackTrace();
+
         }
     }
 
-    public static void broadcast(String message) {
+    public static void addClient(
+            String username,
+            ClientHandler client
+    ) {
 
-        for (ClientHandler client : clients) {
+        clients.put(username, client);
+
+    }
+
+    public static void removeClient(
+            String username
+    ) {
+
+        clients.remove(username);
+
+    }
+
+    public static void sendToUser(
+            String username,
+            String message
+    ) {
+
+        ClientHandler client =
+                clients.get(username);
+
+        if (client != null) {
 
             client.sendMessage(message);
 

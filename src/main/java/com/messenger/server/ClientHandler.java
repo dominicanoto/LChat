@@ -2,14 +2,17 @@ package com.messenger.server;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
-public class ClientHandler extends Thread {
+public class ClientHandler implements Runnable {
 
-    private final Socket socket;
+    private Socket socket;
 
     private BufferedReader reader;
 
     private PrintWriter writer;
+
+    private String username;
 
     public ClientHandler(Socket socket) {
 
@@ -20,24 +23,23 @@ public class ClientHandler extends Thread {
             reader = new BufferedReader(
                     new InputStreamReader(
                             socket.getInputStream(),
-                            java.nio.charset.StandardCharsets.UTF_8
+                            StandardCharsets.UTF_8
                     )
             );
 
             writer = new PrintWriter(
-                    socket.getOutputStream(),
+                    new OutputStreamWriter(
+                            socket.getOutputStream(),
+                            StandardCharsets.UTF_8
+                    ),
                     true
             );
 
         } catch (IOException e) {
+
             e.printStackTrace();
+
         }
-    }
-
-    public void sendMessage(String message) {
-
-        writer.println(message);
-
     }
 
     @Override
@@ -45,18 +47,65 @@ public class ClientHandler extends Thread {
 
         try {
 
+            // First message = username
+
+            username = reader.readLine();
+
+            Server.addClient(
+                    username,
+                    this
+            );
+
             String message;
 
             while ((message = reader.readLine()) != null) {
 
-                System.out.println(message);
+                // FORMAT:
+                // receiver:message
 
-                Server.broadcast(message);
+                int separator =
+                        message.indexOf(":");
 
+                if (separator == -1) {
+                    continue;
+                }
+
+                String receiver =
+                        message.substring(
+                                0,
+                                separator
+                        );
+
+                String text =
+                        message.substring(
+                                separator + 1
+                        );
+
+                String formatted =
+                        username + ": " + text;
+
+                Server.sendToUser(
+                        receiver,
+                        formatted
+                );
             }
 
         } catch (IOException e) {
+
             e.printStackTrace();
+
+        } finally {
+
+            Server.removeClient(username);
+
         }
+    }
+
+    public void sendMessage(
+            String message
+    ) {
+
+        writer.println(message);
+
     }
 }
