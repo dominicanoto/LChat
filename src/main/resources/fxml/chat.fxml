@@ -14,7 +14,7 @@
               style="-fx-padding: 10; -fx-background-color: #2b2d31;">
 
             <TextField fx:id="searchField"
-                       promptText="Search user..." />
+                       promptText="Search by username..." />
 
             <ListView fx:id="dialogsList"
                       VBox.vgrow="ALWAYS" />

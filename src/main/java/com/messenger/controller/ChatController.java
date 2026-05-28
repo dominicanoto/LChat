@@ -10,6 +10,9 @@ import com.messenger.database.UserService;
 
 import com.messenger.model.User;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import javafx.fxml.FXML;
 
 import javafx.scene.control.*;
@@ -55,6 +58,10 @@ public class ChatController {
             unreadMessages =
             new HashMap<>();
 
+    private final ObservableList<User>
+            dialogUsers =
+            FXCollections.observableArrayList();
+
     @FXML
     public void initialize() {
 
@@ -71,6 +78,8 @@ public class ChatController {
         usernameLabel.setText("");
 
         statusLabel.setText("");
+
+        dialogsList.setItems(dialogUsers);
 
         loadDialogs();
 
@@ -131,30 +140,11 @@ public class ChatController {
                     }
                 });
 
-        searchField.setOnAction(event -> {
+        searchField.textProperty().addListener(
+                (observable, oldValue, newValue) -> {
 
-            String username =
-                    searchField.getText();
-
-            User user =
-                    UserService.findUserByUsername(
-                            username
-                    );
-
-            dialogsList.getItems().clear();
-
-            if (user != null) {
-
-                dialogsList.getItems().add(user);
-
-                emptyLabel.setVisible(false);
-
-            } else {
-
-                emptyLabel.setVisible(true);
-
-            }
-        });
+                    performSearch(newValue);
+                });
 
         dialogsList.setOnMouseClicked(event -> {
 
@@ -165,7 +155,6 @@ public class ChatController {
             if (selectedUser != null) {
 
                 openChat(selectedUser);
-
             }
         });
 
@@ -239,7 +228,7 @@ public class ChatController {
             boolean exists = false;
 
             for (User user :
-                    dialogsList.getItems()) {
+                    dialogUsers) {
 
                 if (user.getUsername()
                         .equals(sender)) {
@@ -251,8 +240,7 @@ public class ChatController {
 
             if (!exists && senderUser != null) {
 
-                dialogsList.getItems()
-                        .add(senderUser);
+                dialogUsers.add(senderUser);
             }
 
             int dialogId =
@@ -291,6 +279,50 @@ public class ChatController {
                 updateDialogs();
             }
         });
+    }
+
+    private void performSearch(
+            String search
+    ) {
+
+        if (search == null ||
+                search.isBlank()) {
+
+            loadDialogs();
+
+            return;
+        }
+
+        User user =
+                UserService.findUserByUsername(
+                        search
+                );
+
+        if (user == null) {
+
+            dialogsList.setItems(
+                    FXCollections.observableArrayList()
+            );
+
+            return;
+        }
+
+        if (user.getUsername().equals(
+                Session.getUsername()
+        )) {
+
+            dialogsList.setItems(
+                    FXCollections.observableArrayList()
+            );
+
+            return;
+        }
+
+        dialogsList.setItems(
+                FXCollections.observableArrayList(
+                        user
+                )
+        );
     }
 
     private void openChat(User user) {
@@ -388,7 +420,7 @@ public class ChatController {
 
     private void loadDialogs() {
 
-        dialogsList.getItems().clear();
+        dialogUsers.clear();
 
         List<String> dialogs =
                 DialogService.loadUserDialogs(
@@ -404,10 +436,11 @@ public class ChatController {
 
             if (user != null) {
 
-                dialogsList.getItems().add(user);
-
+                dialogUsers.add(user);
             }
         }
+
+        dialogsList.setItems(dialogUsers);
 
         emptyLabel.setVisible(
                 dialogs.isEmpty()
@@ -436,12 +469,20 @@ public class ChatController {
                     "online"
             );
 
+            statusLabel.setStyle(
+                    "-fx-text-fill: #34C759;"
+            );
+
         } else {
 
             statusLabel.setText(
                     UserService.getLastSeen(
                             selectedUser.getUsername()
                     )
+            );
+
+            statusLabel.setStyle(
+                    "-fx-text-fill: #8e8e93;"
             );
         }
     }
