@@ -1,5 +1,6 @@
 package com.messenger.controller;
 
+import com.messenger.client.OnlineService;
 import com.messenger.client.Session;
 import com.messenger.client.SocketClient;
 
@@ -95,10 +96,21 @@ public class ChatController {
                                                     0
                                             );
 
+                            boolean online =
+                                    OnlineService.isOnline(
+                                            user.getUsername()
+                                    );
+
+                            String status =
+                                    online
+                                            ? "🟢 "
+                                            : "⚫ ";
+
                             if (unread > 0) {
 
                                 setText(
-                                        user.getName() +
+                                        status +
+                                                user.getName() +
                                                 " (@" +
                                                 user.getUsername() +
                                                 ") [" +
@@ -109,7 +121,8 @@ public class ChatController {
                             } else {
 
                                 setText(
-                                        user.getName() +
+                                        status +
+                                                user.getName() +
                                                 " (@" +
                                                 user.getUsername() +
                                                 ")"
@@ -158,6 +171,46 @@ public class ChatController {
         });
 
         SocketClient.listen(message -> {
+
+            if (message.startsWith(
+                    "SYSTEM_ONLINE:"
+            )) {
+
+                String username =
+                        message.replace(
+                                "SYSTEM_ONLINE:",
+                                ""
+                        );
+
+                OnlineService.setOnline(
+                        username,
+                        true
+                );
+
+                updateDialogs();
+
+                return;
+            }
+
+            if (message.startsWith(
+                    "SYSTEM_OFFLINE:"
+            )) {
+
+                String username =
+                        message.replace(
+                                "SYSTEM_OFFLINE:",
+                                ""
+                        );
+
+                OnlineService.setOnline(
+                        username,
+                        false
+                );
+
+                updateDialogs();
+
+                return;
+            }
 
             int separator =
                     message.indexOf(":");

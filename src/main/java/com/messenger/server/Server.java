@@ -53,6 +53,9 @@ public class Server {
 
         clients.put(username, client);
 
+        broadcast(
+                "SYSTEM_ONLINE:" + username
+        );
     }
 
     public static void removeClient(
@@ -61,6 +64,9 @@ public class Server {
 
         clients.remove(username);
 
+        broadcast(
+                "SYSTEM_OFFLINE:" + username
+        );
     }
 
     public static void sendToUser(
@@ -75,6 +81,17 @@ public class Server {
 
             client.sendMessage(message);
 
+        }
+    }
+
+    public static void broadcast(
+            String message
+    ) {
+
+        for (ClientHandler client :
+                clients.values()) {
+
+            client.sendMessage(message);
         }
     }
 }
