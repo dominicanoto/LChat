@@ -43,8 +43,6 @@ public class SocketClient {
                             true
                     );
 
-            // Send username to server
-
             writer.println(username);
 
         } catch (IOException e) {
@@ -89,10 +87,26 @@ public class SocketClient {
 
             } catch (IOException e) {
 
-                e.printStackTrace();
+                disconnect();
 
             }
 
         }).start();
+    }
+
+    public static void disconnect() {
+
+        try {
+
+            if (socket != null) {
+
+                socket.close();
+            }
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+        }
     }
 }

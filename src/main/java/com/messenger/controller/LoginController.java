@@ -88,6 +88,11 @@ public class LoginController {
                             .getScene()
                             .getWindow();
 
+            stage.setOnCloseRequest(event -> {
+
+                SocketClient.disconnect();
+            });
+
             stage.setScene(scene);
 
         } catch (Exception e) {

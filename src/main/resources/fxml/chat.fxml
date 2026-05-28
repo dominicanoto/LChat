@@ -3,70 +3,62 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.messenger.controller.ChatController"
-            stylesheets="@../css/style.css">
-
-    <!-- LEFT PANEL -->
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.messenger.controller.ChatController">
 
     <left>
 
-        <VBox prefWidth="250"
-              spacing="10"
-              styleClass="left-panel">
+        <VBox spacing="10"
+              prefWidth="250"
+              style="-fx-padding: 10; -fx-background-color: #2b2d31;">
 
             <TextField fx:id="searchField"
-                       promptText="Search user..."/>
+                       promptText="Search user..." />
 
             <ListView fx:id="dialogsList"
-                      VBox.vgrow="ALWAYS"/>
+                      VBox.vgrow="ALWAYS" />
 
-            <Label text="Your chat list is empty"
-                   fx:id="emptyLabel"/>
+            <Label fx:id="emptyLabel"
+                   text="No dialogs yet"
+                   style="-fx-text-fill: gray;" />
 
         </VBox>
 
     </left>
 
-    <!-- CHAT AREA -->
-
     <center>
 
-        <VBox spacing="10">
+        <VBox spacing="10"
+              style="-fx-padding: 10;">
 
-            <!-- HEADER -->
-
-            <VBox styleClass="chat-header"
-                  spacing="2">
+            <VBox spacing="2">
 
                 <Label fx:id="nameLabel"
-                       text="Select chat"
-                       styleClass="chat-name"/>
+                       style="-fx-font-size: 18px;
+                              -fx-font-weight: bold;" />
 
                 <Label fx:id="usernameLabel"
-                       text=""
-                       styleClass="chat-username"/>
+                       style="-fx-text-fill: gray;" />
+
+                <Label fx:id="statusLabel"
+                       style="-fx-text-fill: green;" />
 
             </VBox>
 
-            <!-- MESSAGES -->
-
             <TextArea fx:id="chatArea"
                       editable="false"
-                      VBox.vgrow="ALWAYS"/>
+                      wrapText="true"
+                      VBox.vgrow="ALWAYS" />
 
-            <!-- INPUT -->
-
-            <HBox spacing="10"
-                  style="-fx-padding: 10;">
+            <HBox spacing="10">
 
                 <TextField fx:id="messageField"
-                           promptText="Enter message..."
-                           HBox.hgrow="ALWAYS"/>
+                           promptText="Type a message..."
+                           HBox.hgrow="ALWAYS" />
 
-                <Button text="Send"
-                        fx:id="sendButton"/>
+                <Button fx:id="sendButton"
+                        text="Send" />
 
             </HBox>
 

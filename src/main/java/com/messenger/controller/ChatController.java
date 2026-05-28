@@ -14,6 +14,9 @@ import javafx.fxml.FXML;
 
 import javafx.scene.control.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -31,6 +34,9 @@ public class ChatController {
 
     @FXML
     private Label usernameLabel;
+
+    @FXML
+    private Label statusLabel;
 
     @FXML
     private TextArea chatArea;
@@ -52,6 +58,10 @@ public class ChatController {
             unreadMessages =
             new HashMap<>();
 
+    private final Map<String, String>
+            lastSeenMap =
+            new HashMap<>();
+
     @FXML
     public void initialize() {
 
@@ -66,6 +76,8 @@ public class ChatController {
         );
 
         usernameLabel.setText("");
+
+        statusLabel.setText("");
 
         loadDialogs();
 
@@ -104,30 +116,24 @@ public class ChatController {
                             String status =
                                     online
                                             ? "🟢 "
-                                            : "⚫ ";
+                                            : "🔴 ";
+
+                            String text =
+                                    status +
+                                            user.getName() +
+                                            " (@" +
+                                            user.getUsername() +
+                                            ")";
 
                             if (unread > 0) {
 
-                                setText(
-                                        status +
-                                                user.getName() +
-                                                " (@" +
-                                                user.getUsername() +
-                                                ") [" +
+                                text +=
+                                        " [" +
                                                 unread +
-                                                "]"
-                                );
-
-                            } else {
-
-                                setText(
-                                        status +
-                                                user.getName() +
-                                                " (@" +
-                                                user.getUsername() +
-                                                ")"
-                                );
+                                                "]";
                             }
+
+                            setText(text);
                         }
                     }
                 });
@@ -189,6 +195,8 @@ public class ChatController {
 
                 updateDialogs();
 
+                updateStatus();
+
                 return;
             }
 
@@ -207,7 +215,24 @@ public class ChatController {
                         false
                 );
 
+                String time =
+                        LocalDateTime.now()
+                                .format(
+                                        DateTimeFormatter
+                                                .ofPattern(
+                                                        "HH:mm"
+                                                )
+                                );
+
+                lastSeenMap.put(
+                        username,
+                        "last seen at " +
+                                time
+                );
+
                 updateDialogs();
+
+                updateStatus();
 
                 return;
             }
@@ -229,6 +254,41 @@ public class ChatController {
                     message.substring(
                             separator + 1
                     );
+
+            User senderUser =
+                    UserService.getUser(sender);
+
+            boolean exists = false;
+
+            for (User user :
+                    dialogsList.getItems()) {
+
+                if (user.getUsername()
+                        .equals(sender)) {
+
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists && senderUser != null) {
+
+                dialogsList.getItems()
+                        .add(senderUser);
+            }
+
+            int dialogId =
+                    DialogService.getOrCreateDialog(
+                            Session.getUsername(),
+                            sender
+                    );
+
+            MessageService.saveMessage(
+                    dialogId,
+                    sender,
+                    Session.getUsername(),
+                    text
+            );
 
             if (selectedUser != null &&
                     selectedUser.getUsername()
@@ -284,6 +344,8 @@ public class ChatController {
         );
 
         updateDialogs();
+
+        updateStatus();
 
         sendButton.setOnAction(
                 event -> sendMessage()
@@ -377,5 +439,33 @@ public class ChatController {
     private void updateDialogs() {
 
         dialogsList.refresh();
+    }
+
+    private void updateStatus() {
+
+        if (selectedUser == null) {
+            return;
+        }
+
+        boolean online =
+                OnlineService.isOnline(
+                        selectedUser.getUsername()
+                );
+
+        if (online) {
+
+            statusLabel.setText(
+                    "online"
+            );
+
+        } else {
+
+            statusLabel.setText(
+                    lastSeenMap.getOrDefault(
+                            selectedUser.getUsername(),
+                            "offline"
+                    )
+            );
+        }
     }
 }
