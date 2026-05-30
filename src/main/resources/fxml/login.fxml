@@ -2,35 +2,61 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.messenger.controller.LoginController"
-      alignment="CENTER"
-      spacing="15"
-      prefWidth="400"
-      prefHeight="350"
-      stylesheets="@../css/style.css">
+<BorderPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.messenger.controller.LoginController"
+            prefWidth="430"
+            prefHeight="460"
+            stylesheets="@../css/style.css"
+            styleClass="auth-root">
 
-    <padding>
-        <Insets top="30" right="30" bottom="30" left="30"/>
-    </padding>
+    <top>
+        <HBox alignment="CENTER_RIGHT"
+              styleClass="auth-topbar">
+            <padding>
+                <Insets top="14" right="16" bottom="0" left="16"/>
+            </padding>
 
-    <Label text="Messenger Login"
-           styleClass="title"/>
+            <Button fx:id="themeButton"
+                    text="Dark"
+                    styleClass="ghost-button"/>
+        </HBox>
+    </top>
 
-    <TextField fx:id="usernameField"
-               promptText="Username"/>
+    <center>
+        <VBox alignment="CENTER"
+              spacing="14"
+              maxWidth="330"
+              styleClass="auth-card">
 
-    <PasswordField fx:id="passwordField"
-                   promptText="Password"/>
+            <padding>
+                <Insets top="28" right="36" bottom="34" left="36"/>
+            </padding>
 
-    <Button text="Login"
-            fx:id="loginButton"
-            styleClass="connect-button"/>
+            <Label text="Messenger"
+                   styleClass="auth-title"/>
 
-    <Button text="Register"
-            fx:id="registerButton"/>
+            <Label text="Sign in to continue"
+                   styleClass="auth-subtitle"/>
 
-</VBox>
+            <TextField fx:id="usernameField"
+                       promptText="Username"/>
+
+            <PasswordField fx:id="passwordField"
+                           promptText="Password"/>
+
+            <Button text="Login"
+                    fx:id="loginButton"
+                    styleClass="primary-button"/>
+
+            <Button text="Create account"
+                    fx:id="registerButton"
+                    styleClass="link-button"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

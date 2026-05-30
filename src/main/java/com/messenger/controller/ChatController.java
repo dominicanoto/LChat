@@ -3,6 +3,7 @@ package com.messenger.controller;
 import com.messenger.client.OnlineService;
 import com.messenger.client.Session;
 import com.messenger.client.SocketClient;
+import com.messenger.client.ThemeService;
 
 import com.messenger.database.DialogService;
 import com.messenger.database.MessageService;
@@ -16,14 +17,37 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class ChatController {
+
+    @FXML
+    private BorderPane rootPane;
+
+    @FXML
+    private Label currentNameLabel;
+
+    @FXML
+    private Label currentUsernameLabel;
+
+    @FXML
+    private Button editNameButton;
+
+    @FXML
+    private Button logoutButton;
+
+    @FXML
+    private Button themeButton;
 
     @FXML
     private TextField searchField;
@@ -67,6 +91,13 @@ public class ChatController {
     @FXML
     public void initialize() {
 
+        ThemeService.applyTheme(
+                rootPane,
+                themeButton
+        );
+
+        loadCurrentUser();
+
         chatArea.setVisible(false);
 
         messageField.setVisible(false);
@@ -84,6 +115,21 @@ public class ChatController {
         dialogsList.setItems(dialogUsers);
 
         loadDialogs();
+
+        editNameButton.setOnAction(
+                event -> editName()
+        );
+
+        logoutButton.setOnAction(
+                event -> logout()
+        );
+
+        themeButton.setOnAction(
+                event -> ThemeService.toggleTheme(
+                        rootPane,
+                        themeButton
+                )
+        );
 
         dialogsList.setCellFactory(list ->
                 new ListCell<>() {
@@ -244,6 +290,25 @@ public class ChatController {
         });
     }
 
+    private void loadCurrentUser() {
+
+        User user =
+                UserService.getUser(
+                        Session.getUsername()
+                );
+
+        if (user != null) {
+
+            currentNameLabel.setText(
+                    user.getName()
+            );
+
+            currentUsernameLabel.setText(
+                    "@" + user.getUsername()
+            );
+        }
+    }
+
     private void performSearch(
             String search
     ) {
@@ -286,6 +351,74 @@ public class ChatController {
                         user
                 )
         );
+    }
+
+    private void editName() {
+
+        TextInputDialog dialog =
+                new TextInputDialog(
+                        currentNameLabel.getText()
+                );
+
+        dialog.setTitle("Change name");
+        dialog.setHeaderText(null);
+        dialog.setContentText("New display name:");
+
+        Optional<String> result =
+                dialog.showAndWait();
+
+        if (result.isEmpty()) {
+            return;
+        }
+
+        String newName =
+                result.get().trim();
+
+        if (newName.isBlank()) {
+            return;
+        }
+
+        boolean success =
+                UserService.updateName(
+                        Session.getUsername(),
+                        newName
+                );
+
+        if (success) {
+
+            currentNameLabel.setText(newName);
+            loadDialogs();
+        }
+    }
+
+    private void logout() {
+
+        try {
+
+            SocketClient.disconnect();
+
+            FXMLLoader loader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/fxml/login.fxml"
+                            )
+                    );
+
+            Scene scene =
+                    new Scene(loader.load());
+
+            Stage stage =
+                    (Stage) logoutButton
+                            .getScene()
+                            .getWindow();
+
+            stage.setOnCloseRequest(null);
+            stage.setScene(scene);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
     }
 
     private void openChat(User user) {

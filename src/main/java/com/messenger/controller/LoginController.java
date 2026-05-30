@@ -2,6 +2,7 @@ package com.messenger.controller;
 
 import com.messenger.client.Session;
 import com.messenger.client.SocketClient;
+import com.messenger.client.ThemeService;
 import com.messenger.database.UserService;
 
 import javafx.fxml.FXML;
@@ -9,10 +10,14 @@ import javafx.fxml.FXMLLoader;
 
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 
 import javafx.stage.Stage;
 
 public class LoginController {
+
+    @FXML
+    private BorderPane rootPane;
 
     @FXML
     private TextField usernameField;
@@ -27,7 +32,15 @@ public class LoginController {
     private Button registerButton;
 
     @FXML
+    private Button themeButton;
+
+    @FXML
     public void initialize() {
+
+        ThemeService.applyTheme(
+                rootPane,
+                themeButton
+        );
 
         loginButton.setOnAction(
                 event -> login()
@@ -35,6 +48,13 @@ public class LoginController {
 
         registerButton.setOnAction(
                 event -> openRegisterWindow()
+        );
+
+        themeButton.setOnAction(
+                event -> ThemeService.toggleTheme(
+                        rootPane,
+                        themeButton
+                )
         );
     }
 

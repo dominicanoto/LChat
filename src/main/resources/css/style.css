@@ -1,56 +1,198 @@
-.root {
-    -fx-background-color: #f5f7fa;
+.light-theme {
+    -bg: #eef3f8;
+    -surface: #ffffff;
+    -surface-alt: #f4f7fb;
+    -border: #dbe4ee;
+    -text: #1f2937;
+    -muted: #6b7280;
+    -accent: #229ed9;
+    -accent-soft: #dff3fb;
+    -input: #f8fafc;
 }
 
-.title {
-    -fx-font-size: 24px;
+.dark-theme {
+    -bg: #17212b;
+    -surface: #1f2c38;
+    -surface-alt: #243447;
+    -border: #304255;
+    -text: #e5edf5;
+    -muted: #93a4b7;
+    -accent: #37aee2;
+    -accent-soft: #2b5278;
+    -input: #17212b;
+}
+
+.auth-root,
+.chat-root {
+    -fx-background-color: -bg;
+    -fx-font-family: "Segoe UI";
+}
+
+.auth-topbar {
+    -fx-background-color: transparent;
+}
+
+.auth-card {
+    -fx-background-color: -surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -border;
+    -fx-border-radius: 8;
+}
+
+.auth-title {
+    -fx-font-size: 26px;
     -fx-font-weight: bold;
+    -fx-text-fill: -text;
 }
 
-.text-field {
-    -fx-pref-width: 250px;
-    -fx-pref-height: 35px;
+.auth-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: -muted;
+}
 
-    -fx-background-radius: 10;
+.text-field,
+.password-field {
+    -fx-pref-height: 38px;
+    -fx-background-color: -input;
+    -fx-background-radius: 6;
+    -fx-border-color: -border;
+    -fx-border-radius: 6;
+    -fx-text-fill: -text;
+    -fx-prompt-text-fill: -muted;
     -fx-font-size: 14px;
 }
 
+.primary-button,
 .connect-button {
-    -fx-background-color: #4a90e2;
+    -fx-background-color: -accent;
     -fx-text-fill: white;
-
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-
-    -fx-background-radius: 10;
-
-    -fx-pref-width: 150px;
-    -fx-pref-height: 35px;
+    -fx-background-radius: 6;
+    -fx-pref-height: 38px;
 }
 
-.left-panel {
-    -fx-background-color: #f0f2f5;
-    -fx-padding: 10;
+.link-button,
+.ghost-button,
+.icon-button,
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -accent;
+    -fx-background-radius: 6;
+    -fx-font-weight: bold;
+}
+
+.ghost-button,
+.icon-button,
+.sidebar-button {
+    -fx-background-color: -surface-alt;
+    -fx-border-color: -border;
+    -fx-border-radius: 6;
+}
+
+.icon-button {
+    -fx-min-width: 58px;
+}
+
+.sidebar-button {
+    -fx-pref-height: 32px;
+    -fx-font-size: 12px;
+}
+
+.dialog-sidebar {
+    -fx-background-color: -surface;
+    -fx-border-color: transparent -border transparent transparent;
+}
+
+.current-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -text;
+}
+
+.current-username,
+.empty-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -muted;
+}
+
+.search-field {
+    -fx-pref-height: 36px;
+}
+
+.dialogs-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+}
+
+.dialogs-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text;
+    -fx-padding: 10 8 10 8;
+    -fx-font-size: 13px;
+}
+
+.dialogs-list .list-cell:filled:hover {
+    -fx-background-color: -surface-alt;
+}
+
+.dialogs-list .list-cell:filled:selected {
+    -fx-background-color: -accent-soft;
+    -fx-text-fill: -text;
+}
+
+.chat-pane {
+    -fx-background-color: -bg;
 }
 
 .chat-header {
-    -fx-padding: 10;
-    -fx-background-color: #ffffff;
-    -fx-border-color: #dddddd;
+    -fx-background-color: -surface;
+    -fx-border-color: transparent transparent -border transparent;
 }
 
 .chat-name {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
+    -fx-text-fill: -text;
 }
 
-.chat-username {
+.chat-username,
+.chat-status {
     -fx-font-size: 12px;
-    -fx-text-fill: gray;
+    -fx-text-fill: -muted;
 }
 
-.list-view {
-    -fx-background-radius: 10;
+.chat-area {
+    -fx-control-inner-background: -bg;
+    -fx-background-color: -bg;
+    -fx-text-fill: -text;
+    -fx-font-size: 14px;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.chat-area .content {
+    -fx-background-color: -bg;
+}
+
+.message-bar {
+    -fx-background-color: -surface;
+    -fx-border-color: -border transparent transparent transparent;
+}
+
+.message-field {
+    -fx-pref-height: 40px;
+}
+
+.send-button {
+    -fx-background-color: -accent;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-weight: bold;
+    -fx-pref-width: 86px;
+    -fx-pref-height: 40px;
 }
 
 .server-root {

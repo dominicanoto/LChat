@@ -1,13 +1,18 @@
 package com.messenger.controller;
 
+import com.messenger.client.ThemeService;
 import com.messenger.database.UserService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class RegisterController {
+
+    @FXML
+    private BorderPane rootPane;
 
     @FXML
     private TextField nameField;
@@ -25,11 +30,26 @@ public class RegisterController {
     private Button backButton;
 
     @FXML
+    private Button themeButton;
+
+    @FXML
     public void initialize() {
+
+        ThemeService.applyTheme(
+                rootPane,
+                themeButton
+        );
 
         createButton.setOnAction(event -> register());
 
         backButton.setOnAction(event -> openLoginWindow());
+
+        themeButton.setOnAction(
+                event -> ThemeService.toggleTheme(
+                        rootPane,
+                        themeButton
+                )
+        );
     }
 
     private void register() {

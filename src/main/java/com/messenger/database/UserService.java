@@ -117,6 +117,35 @@ public class UserService {
         return findUserByUsername(username);
     }
 
+    public static boolean updateName(
+            String username,
+            String name
+    ) {
+
+        String sql =
+                "UPDATE users SET name = ? WHERE username = ?";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(1, name);
+
+            statement.setString(2, username);
+
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static void updateLastSeen(
             String username,
             String lastSeen
