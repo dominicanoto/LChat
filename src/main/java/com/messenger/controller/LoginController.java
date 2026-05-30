@@ -1,5 +1,6 @@
 package com.messenger.controller;
 
+import com.messenger.client.OnlineService;
 import com.messenger.client.Session;
 import com.messenger.client.SocketClient;
 import com.messenger.client.ThemeService;
@@ -73,6 +74,8 @@ public class LoginController {
                 );
 
         if (success) {
+
+            OnlineService.clear();
 
             Session.setUsername(username);
 

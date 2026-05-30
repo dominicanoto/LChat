@@ -29,4 +29,9 @@ public class OnlineService {
                 false
         );
     }
+
+    public static void clear() {
+
+        onlineUsers.clear();
+    }
 }

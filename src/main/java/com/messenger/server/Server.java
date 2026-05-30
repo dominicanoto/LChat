@@ -138,7 +138,14 @@ public class Server {
             ClientHandler client
     ) {
 
-        clients.put(username, client);
+        ClientHandler oldClient =
+                clients.put(username, client);
+
+        if (oldClient != null &&
+                oldClient != client) {
+
+            oldClient.close();
+        }
 
         sendOnlineUsersTo(
                 username,
@@ -158,14 +165,23 @@ public class Server {
     }
 
     public static void removeClient(
-            String username
+            String username,
+            ClientHandler client
     ) {
 
         if (username == null) {
             return;
         }
 
-        clients.remove(username);
+        boolean removed =
+                clients.remove(
+                        username,
+                        client
+                );
+
+        if (!removed) {
+            return;
+        }
 
         log(
                 username + " is offline"
@@ -260,6 +276,20 @@ public class Server {
                             username
             );
         }
+    }
+
+    public static void sendReadReceipt(
+            String sender,
+            String reader
+    ) {
+
+        sendToUser(
+                sender,
+                XmlProtocol.read(
+                        reader,
+                        sender
+                )
+        );
     }
 
     public static void broadcast(

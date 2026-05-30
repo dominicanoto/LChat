@@ -78,6 +78,18 @@ public class ClientHandler implements Runnable {
                     break;
                 }
 
+                if ("read".equals(
+                        xmlMessage.type()
+                )) {
+
+                    Server.sendReadReceipt(
+                            xmlMessage.sender(),
+                            xmlMessage.reader()
+                    );
+
+                    continue;
+                }
+
                 if (!"chat".equals(
                         xmlMessage.type()
                 )) {
@@ -115,7 +127,10 @@ public class ClientHandler implements Runnable {
 
         } finally {
 
-            Server.removeClient(username);
+            Server.removeClient(
+                    username,
+                    this
+            );
 
         }
     }
@@ -126,5 +141,17 @@ public class ClientHandler implements Runnable {
 
         writer.println(message);
 
+    }
+
+    public void close() {
+
+        try {
+
+            socket.close();
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
     }
 }

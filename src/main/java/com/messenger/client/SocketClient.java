@@ -70,6 +70,22 @@ public class SocketClient {
         );
     }
 
+    public static void sendRead(
+            String sender
+    ) {
+
+        if (writer == null) {
+            return;
+        }
+
+        writer.println(
+                XmlProtocol.read(
+                        Session.getUsername(),
+                        sender
+                )
+        );
+    }
+
     public static void listen(
             MessageListener listener
     ) {
@@ -114,12 +130,18 @@ public class SocketClient {
                                 Session.getUsername()
                         )
                 );
+
+                writer.flush();
             }
 
             if (socket != null) {
 
                 socket.close();
             }
+
+            socket = null;
+            reader = null;
+            writer = null;
 
         } catch (IOException e) {
 

@@ -19,9 +19,11 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -65,7 +67,10 @@ public class ChatController {
     private Label statusLabel;
 
     @FXML
-    private TextArea chatArea;
+    private ScrollPane chatScrollPane;
+
+    @FXML
+    private VBox messagesBox;
 
     @FXML
     private TextField messageField;
@@ -84,6 +89,10 @@ public class ChatController {
             unreadMessages =
             new HashMap<>();
 
+    private final Map<String, List<Label>>
+            outgoingStatuses =
+            new HashMap<>();
+
     private final ObservableList<User>
             dialogUsers =
             FXCollections.observableArrayList();
@@ -98,7 +107,7 @@ public class ChatController {
 
         loadCurrentUser();
 
-        chatArea.setVisible(false);
+        chatScrollPane.setVisible(false);
 
         messageField.setVisible(false);
 
@@ -232,6 +241,17 @@ public class ChatController {
                 return;
             }
 
+            if ("read".equals(
+                    xmlMessage.type()
+            )) {
+
+                markMessagesRead(
+                        xmlMessage.reader()
+                );
+
+                return;
+            }
+
             if (!"chat".equals(
                     xmlMessage.type()
             )) {
@@ -269,10 +289,14 @@ public class ChatController {
                     selectedUser.getUsername()
                             .equals(sender)) {
 
-                chatArea.appendText(
-                        sender + ": " +
-                                text + "\n"
+                addMessageBubble(
+                        sender,
+                        text,
+                        false,
+                        null
                 );
+
+                SocketClient.sendRead(sender);
 
             } else {
 
@@ -396,6 +420,7 @@ public class ChatController {
         try {
 
             SocketClient.disconnect();
+            OnlineService.clear();
 
             FXMLLoader loader =
                     new FXMLLoader(
@@ -431,7 +456,7 @@ public class ChatController {
                 "@" + user.getUsername()
         );
 
-        chatArea.setVisible(true);
+        chatScrollPane.setVisible(true);
 
         messageField.setVisible(true);
 
@@ -453,9 +478,138 @@ public class ChatController {
 
         updateStatus();
 
+        SocketClient.sendRead(
+                user.getUsername()
+        );
+
         sendButton.setOnAction(
                 event -> sendMessage()
         );
+    }
+
+    private Label addMessageBubble(
+            String sender,
+            String text,
+            boolean outgoing,
+            String status
+    ) {
+
+        HBox row =
+                new HBox();
+
+        row.setAlignment(
+                outgoing
+                        ? Pos.CENTER_RIGHT
+                        : Pos.CENTER_LEFT
+        );
+
+        Label name =
+                new Label(
+                        getDisplayName(sender)
+                );
+
+        name.getStyleClass().add("bubble-name");
+
+        Label message =
+                new Label(text);
+
+        message.setWrapText(true);
+        message.setMaxWidth(360);
+        message.getStyleClass().add("bubble-text");
+
+        VBox bubble =
+                new VBox(4);
+
+        bubble.getStyleClass().add(
+                outgoing
+                        ? "outgoing-bubble"
+                        : "incoming-bubble"
+        );
+
+        bubble.getChildren().addAll(
+                name,
+                message
+        );
+
+        Label statusLabel = null;
+
+        if (outgoing) {
+
+            statusLabel =
+                    new Label("✓");
+
+            statusLabel.getStyleClass().addAll(
+                    "message-status",
+                    statusClass(status)
+            );
+
+            HBox statusRow =
+                    new HBox(statusLabel);
+
+            statusRow.setAlignment(Pos.CENTER_RIGHT);
+            bubble.getChildren().add(statusRow);
+        }
+
+        row.getChildren().add(bubble);
+
+        VBox.setMargin(
+                row,
+                new Insets(0, 8, 0, 8)
+        );
+
+        messagesBox.getChildren().add(row);
+        chatScrollPane.setVvalue(1.0);
+
+        return statusLabel;
+    }
+
+    private String getDisplayName(
+            String username
+    ) {
+
+        User user =
+                UserService.getUser(username);
+
+        if (user == null) {
+            return username;
+        }
+
+        return user.getName();
+    }
+
+    private String statusClass(
+            String status
+    ) {
+
+        if ("read".equals(status)) {
+            return "status-read";
+        }
+
+        if ("sent".equals(status)) {
+            return "status-sent";
+        }
+
+        return "status-sending";
+    }
+
+    private void markMessagesRead(
+            String reader
+    ) {
+
+        List<Label> labels =
+                outgoingStatuses.get(reader);
+
+        if (labels == null) {
+            return;
+        }
+
+        for (Label label : labels) {
+
+            label.getStyleClass().setAll(
+                    "message-status",
+                    "status-read"
+            );
+        }
     }
 
     private void sendMessage() {
@@ -477,15 +631,30 @@ public class ChatController {
         String receiver =
                 selectedUser.getUsername();
 
+        Label statusLabel =
+                addMessageBubble(
+                        sender,
+                        text,
+                        true,
+                        "sending"
+                );
+
         SocketClient.sendMessage(
                 receiver,
                 text
         );
 
-        chatArea.appendText(
-                sender + ": " +
-                        text + "\n"
+        statusLabel.getStyleClass().setAll(
+                "message-status",
+                "status-sent"
         );
+
+        outgoingStatuses
+                .computeIfAbsent(
+                        receiver,
+                        key -> new java.util.ArrayList<>()
+                )
+                .add(statusLabel);
 
         messageField.clear();
 
@@ -494,15 +663,43 @@ public class ChatController {
 
     private void loadMessages() {
 
-        chatArea.clear();
+        messagesBox.getChildren().clear();
 
         for (String message :
                 MessageService.loadMessages(
                         currentDialogId
                 )) {
 
-            chatArea.appendText(
-                    message + "\n"
+            int separator =
+                    message.indexOf(": ");
+
+            if (separator == -1) {
+                continue;
+            }
+
+            String sender =
+                    message.substring(
+                            0,
+                            separator
+                    );
+
+            String text =
+                    message.substring(
+                            separator + 2
+                    );
+
+            boolean outgoing =
+                    sender.equals(
+                            Session.getUsername()
+                    );
+
+            addMessageBubble(
+                    sender,
+                    text,
+                    outgoing,
+                    outgoing
+                            ? "read"
+                            : null
             );
         }
     }

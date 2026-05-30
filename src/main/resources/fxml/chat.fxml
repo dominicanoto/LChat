@@ -101,10 +101,15 @@
             </top>
 
             <center>
-                <TextArea fx:id="chatArea"
-                          editable="false"
-                          wrapText="true"
-                          styleClass="chat-area"/>
+                <ScrollPane fx:id="chatScrollPane"
+                            fitToWidth="true"
+                            styleClass="chat-scroll">
+                    <content>
+                        <VBox fx:id="messagesBox"
+                              spacing="8"
+                              styleClass="messages-box"/>
+                    </content>
+                </ScrollPane>
             </center>
 
             <bottom>

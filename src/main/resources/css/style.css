@@ -168,18 +168,60 @@
     -fx-text-fill: -muted;
 }
 
-.chat-area {
-    -fx-control-inner-background: -bg;
+.chat-scroll {
     -fx-background-color: -bg;
-    -fx-text-fill: -text;
-    -fx-font-size: 14px;
     -fx-border-color: transparent;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
 }
 
-.chat-area .content {
+.chat-scroll .viewport {
     -fx-background-color: -bg;
+}
+
+.messages-box {
+    -fx-background-color: -bg;
+    -fx-padding: 16 12 16 12;
+}
+
+.incoming-bubble,
+.outgoing-bubble {
+    -fx-background-radius: 8;
+    -fx-padding: 8 10 7 10;
+}
+
+.incoming-bubble {
+    -fx-background-color: -surface;
+}
+
+.outgoing-bubble {
+    -fx-background-color: -accent-soft;
+}
+
+.bubble-name {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -accent;
+}
+
+.bubble-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: -text;
+}
+
+.message-status {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.status-sending {
+    -fx-text-fill: #9ca3af;
+}
+
+.status-sent {
+    -fx-text-fill: #229ed9;
+}
+
+.status-read {
+    -fx-text-fill: #22c55e;
 }
 
 .message-bar {

@@ -51,6 +51,20 @@ public class XmlProtocol {
         );
     }
 
+    public static String read(
+            String reader,
+            String sender
+    ) {
+
+        return createMessage(
+                "read",
+                new String[][]{
+                        {"reader", reader},
+                        {"sender", sender}
+                }
+        );
+    }
+
     public static String presence(
             String username,
             String status
@@ -88,7 +102,8 @@ public class XmlProtocol {
                     getText(root, "sender"),
                     getText(root, "receiver"),
                     getText(root, "text"),
-                    getText(root, "status")
+                    getText(root, "status"),
+                    getText(root, "reader")
             );
 
         } catch (Exception e) {
@@ -174,13 +189,15 @@ public class XmlProtocol {
             String sender,
             String receiver,
             String text,
-            String status
+            String status,
+            String reader
     ) {
 
         public static XmlMessage invalid() {
 
             return new XmlMessage(
                     "invalid",
+                    "",
                     "",
                     "",
                     "",
