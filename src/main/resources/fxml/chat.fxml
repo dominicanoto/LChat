@@ -42,7 +42,7 @@
                 </VBox>
 
                 <Button fx:id="themeButton"
-                        text="Dark"
+                        text="☾"
                         styleClass="icon-button"/>
 
             </HBox>
@@ -55,10 +55,10 @@
                         styleClass="sidebar-button"/>
 
                 <Button fx:id="logoutButton"
-                        text="Log out"
+                        text="⇥"
                         HBox.hgrow="ALWAYS"
                         maxWidth="Infinity"
-                        styleClass="sidebar-button"/>
+                        styleClass="exit-button"/>
             </HBox>
 
             <TextField fx:id="searchField"
@@ -126,7 +126,7 @@
                                styleClass="message-field"/>
 
                     <Button fx:id="sendButton"
-                            text="Send"
+                            text="➤"
                             styleClass="send-button"/>
 
                 </HBox>

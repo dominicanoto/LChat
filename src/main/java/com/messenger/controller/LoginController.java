@@ -79,7 +79,18 @@ public class LoginController {
 
             Session.setUsername(username);
 
-            SocketClient.connect(username);
+            boolean connected =
+                    SocketClient.connect(username);
+
+            if (!connected) {
+
+                showAlert(
+                        "Connection error",
+                        "Server is not running"
+                );
+
+                return;
+            }
 
             openChatWindow();
 

@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class ChatController {
 
@@ -293,7 +295,8 @@ public class ChatController {
                         sender,
                         text,
                         false,
-                        null
+                        null,
+                        currentTime()
                 );
 
                 SocketClient.sendRead(sender);
@@ -448,6 +451,16 @@ public class ChatController {
 
     private void openChat(User user) {
 
+        boolean hadUnreadMessages =
+                unreadMessages.getOrDefault(
+                        user.getUsername(),
+                        0
+                ) > 0 ||
+                        MessageService.hasUnreadMessages(
+                                user.getUsername(),
+                                Session.getUsername()
+                        );
+
         nameLabel.setText(
                 user.getName()
         );
@@ -463,7 +476,7 @@ public class ChatController {
         sendButton.setVisible(true);
 
         currentDialogId =
-                DialogService.getOrCreateDialog(
+                DialogService.findDialog(
                         Session.getUsername(),
                         user.getUsername()
                 );
@@ -478,9 +491,12 @@ public class ChatController {
 
         updateStatus();
 
-        SocketClient.sendRead(
-                user.getUsername()
-        );
+        if (hadUnreadMessages) {
+
+            SocketClient.sendRead(
+                    user.getUsername()
+            );
+        }
 
         sendButton.setOnAction(
                 event -> sendMessage()
@@ -491,7 +507,8 @@ public class ChatController {
             String sender,
             String text,
             boolean outgoing,
-            String status
+            String status,
+            String time
     ) {
 
         HBox row =
@@ -536,15 +553,30 @@ public class ChatController {
         if (outgoing) {
 
             statusLabel =
-                    new Label("✓");
+                    new Label(
+                            "read".equals(status)
+                                    ? "✓✓"
+                                    : "✓"
+                    );
 
             statusLabel.getStyleClass().addAll(
                     "message-status",
                     statusClass(status)
             );
 
+            Label timeLabel =
+                    new Label(time);
+
+            timeLabel.getStyleClass().add(
+                    "message-time"
+            );
+
             HBox statusRow =
-                    new HBox(statusLabel);
+                    new HBox(
+                            5,
+                            timeLabel,
+                            statusLabel
+                    );
 
             statusRow.setAlignment(Pos.CENTER_RIGHT);
             bubble.getChildren().add(statusRow);
@@ -561,6 +593,15 @@ public class ChatController {
         chatScrollPane.setVvalue(1.0);
 
         return statusLabel;
+    }
+
+    private String currentTime() {
+
+        return LocalTime.now()
+                .format(
+                        DateTimeFormatter
+                                .ofPattern("HH:mm")
+                );
     }
 
     private String getDisplayName(
@@ -605,6 +646,8 @@ public class ChatController {
 
         for (Label label : labels) {
 
+            label.setText("✓✓");
+
             label.getStyleClass().setAll(
                     "message-status",
                     "status-read"
@@ -631,18 +674,39 @@ public class ChatController {
         String receiver =
                 selectedUser.getUsername();
 
+        if (currentDialogId == -1) {
+
+            currentDialogId =
+                    DialogService.getOrCreateDialog(
+                            sender,
+                            receiver
+                    );
+        }
+
         Label statusLabel =
                 addMessageBubble(
                         sender,
                         text,
                         true,
-                        "sending"
+                        "sending",
+                        currentTime()
                 );
 
-        SocketClient.sendMessage(
-                receiver,
-                text
-        );
+        boolean sent =
+                SocketClient.sendMessage(
+                        receiver,
+                        text
+                );
+
+        if (!sent) {
+
+            statusLabel.getStyleClass().setAll(
+                    "message-status",
+                    "status-sending"
+            );
+
+            return;
+        }
 
         statusLabel.getStyleClass().setAll(
                 "message-status",
@@ -665,42 +729,48 @@ public class ChatController {
 
         messagesBox.getChildren().clear();
 
-        for (String message :
-                MessageService.loadMessages(
+        if (currentDialogId == -1) {
+            return;
+        }
+
+        for (MessageService.MessageRecord message :
+                MessageService.loadMessageRecords(
                         currentDialogId
                 )) {
 
-            int separator =
-                    message.indexOf(": ");
-
-            if (separator == -1) {
-                continue;
-            }
-
             String sender =
-                    message.substring(
-                            0,
-                            separator
-                    );
+                    message.sender();
 
             String text =
-                    message.substring(
-                            separator + 2
-                    );
+                    message.message();
 
             boolean outgoing =
                     sender.equals(
                             Session.getUsername()
                     );
 
-            addMessageBubble(
+            Label statusLabel =
+                    addMessageBubble(
                     sender,
                     text,
                     outgoing,
                     outgoing
-                            ? "read"
-                            : null
+                            ? message.read()
+                                    ? "read"
+                                    : "sent"
+                            : null,
+                    message.time()
             );
+
+            if (outgoing && selectedUser != null) {
+
+                outgoingStatuses
+                        .computeIfAbsent(
+                                selectedUser.getUsername(),
+                                key -> new java.util.ArrayList<>()
+                        )
+                        .add(statusLabel);
+            }
         }
     }
 

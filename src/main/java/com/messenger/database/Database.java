@@ -82,7 +82,9 @@ public class Database {
 
                     message TEXT NOT NULL,
 
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                    read_at TIMESTAMP
                 )
                 """;
 
@@ -128,6 +130,14 @@ public class Database {
                     "UPDATE messages " +
                             "SET timestamp = CURRENT_TIMESTAMP " +
                             "WHERE timestamp IS NULL"
+            );
+        }
+
+        if (!columnExists("messages", "read_at")) {
+
+            execute(
+                    "ALTER TABLE messages " +
+                            "ADD COLUMN read_at TEXT"
             );
         }
     }

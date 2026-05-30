@@ -11,10 +11,58 @@ import java.util.List;
 
 public class DialogService {
 
+    public static int findDialog(
+            String user1,
+            String user2
+    ) {
+
+        String selectSql = """
+                SELECT id FROM dialogs
+                WHERE
+                (user1=? AND user2=?)
+                OR
+                (user1=? AND user2=?)
+                """;
+
+        try (Connection connection = Database.connect();
+             PreparedStatement select =
+                     connection.prepareStatement(selectSql)) {
+
+            select.setString(1, user1);
+            select.setString(2, user2);
+            select.setString(3, user2);
+            select.setString(4, user1);
+
+            ResultSet resultSet =
+                    select.executeQuery();
+
+            if (resultSet.next()) {
+
+                return resultSet.getInt("id");
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
     public static int getOrCreateDialog(
             String user1,
             String user2
     ) {
+
+        int existingDialogId =
+                findDialog(
+                        user1,
+                        user2
+                );
+
+        if (existingDialogId != -1) {
+            return existingDialogId;
+        }
 
         String selectSql = """
                 SELECT id FROM dialogs

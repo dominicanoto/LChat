@@ -75,7 +75,8 @@
 .link-button,
 .ghost-button,
 .icon-button,
-.sidebar-button {
+.sidebar-button,
+.exit-button {
     -fx-background-color: transparent;
     -fx-text-fill: -accent;
     -fx-background-radius: 6;
@@ -84,7 +85,8 @@
 
 .ghost-button,
 .icon-button,
-.sidebar-button {
+.sidebar-button,
+.exit-button {
     -fx-background-color: -surface-alt;
     -fx-border-color: -border;
     -fx-border-radius: 6;
@@ -97,6 +99,11 @@
 .sidebar-button {
     -fx-pref-height: 32px;
     -fx-font-size: 12px;
+}
+
+.exit-button {
+    -fx-pref-height: 32px;
+    -fx-font-size: 16px;
 }
 
 .dialog-sidebar {
@@ -208,8 +215,13 @@
 }
 
 .message-status {
-    -fx-font-size: 12px;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
+}
+
+.message-time {
+    -fx-font-size: 10px;
+    -fx-text-fill: -muted;
 }
 
 .status-sending {
@@ -238,8 +250,9 @@
     -fx-text-fill: white;
     -fx-background-radius: 6;
     -fx-font-weight: bold;
-    -fx-pref-width: 86px;
+    -fx-pref-width: 48px;
     -fx-pref-height: 40px;
+    -fx-font-size: 15px;
 }
 
 .server-root {

@@ -16,7 +16,7 @@ public class SocketClient {
 
     private static PrintWriter writer;
 
-    public static void connect(
+    public static boolean connect(
             String username
     ) {
 
@@ -49,17 +49,25 @@ public class SocketClient {
                     XmlProtocol.login(username)
             );
 
+            return true;
+
         } catch (IOException e) {
 
             e.printStackTrace();
+            disconnect();
 
+            return false;
         }
     }
 
-    public static void sendMessage(
+    public static boolean sendMessage(
             String receiver,
             String message
     ) {
+
+        if (writer == null) {
+            return false;
+        }
 
         writer.println(
                 XmlProtocol.chat(
@@ -68,6 +76,8 @@ public class SocketClient {
                         message
                 )
         );
+
+        return true;
     }
 
     public static void sendRead(
@@ -89,6 +99,10 @@ public class SocketClient {
     public static void listen(
             MessageListener listener
     ) {
+
+        if (reader == null) {
+            return;
+        }
 
         new Thread(() -> {
 

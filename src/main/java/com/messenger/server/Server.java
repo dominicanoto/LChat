@@ -268,13 +268,6 @@ public class Server {
         if (client != null) {
 
             client.sendMessage(message);
-
-        } else {
-
-            log(
-                    "User is offline: " +
-                            username
-            );
         }
     }
 
@@ -283,13 +276,23 @@ public class Server {
             String reader
     ) {
 
-        sendToUser(
+        MessageService.markMessagesRead(
                 sender,
-                XmlProtocol.read(
-                        reader,
-                        sender
-                )
+                reader
         );
+
+        ClientHandler client =
+                clients.get(sender);
+
+        if (client != null) {
+
+            client.sendMessage(
+                    XmlProtocol.read(
+                            reader,
+                            sender
+                    )
+            );
+        }
     }
 
     public static void broadcast(

@@ -25,8 +25,8 @@ public class ThemeService {
 
         themeButton.setText(
                 darkTheme
-                        ? "Light"
-                        : "Dark"
+                        ? "☀"
+                        : "☾"
         );
     }
 
