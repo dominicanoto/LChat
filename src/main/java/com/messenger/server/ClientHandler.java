@@ -1,5 +1,8 @@
 package com.messenger.server;
 
+import com.messenger.protocol.XmlProtocol;
+import com.messenger.protocol.XmlProtocol.XmlMessage;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -47,9 +50,15 @@ public class ClientHandler implements Runnable {
 
         try {
 
-            // First message = username
+            // First message = XML login
 
-            username = reader.readLine();
+            XmlMessage loginMessage =
+                    XmlProtocol.parse(
+                            reader.readLine()
+                    );
+
+            username =
+                    loginMessage.username();
 
             Server.addClient(
                     username,
@@ -60,29 +69,27 @@ public class ClientHandler implements Runnable {
 
             while ((message = reader.readLine()) != null) {
 
-                // FORMAT:
-                // receiver:message
+                XmlMessage xmlMessage =
+                        XmlProtocol.parse(message);
 
-                int separator =
-                        message.indexOf(":");
-
-                if (separator == -1) {
+                if (!"chat".equals(
+                        xmlMessage.type()
+                )) {
                     continue;
                 }
 
                 String receiver =
-                        message.substring(
-                                0,
-                                separator
-                        );
+                        xmlMessage.receiver();
 
                 String text =
-                        message.substring(
-                                separator + 1
-                        );
+                        xmlMessage.text();
 
                 String formatted =
-                        username + ": " + text;
+                        XmlProtocol.chat(
+                                username,
+                                receiver,
+                                text
+                        );
 
                 Server.registerConversation(
                         username,

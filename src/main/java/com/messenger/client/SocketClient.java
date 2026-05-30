@@ -1,5 +1,7 @@
 package com.messenger.client;
 
+import com.messenger.protocol.XmlProtocol;
+
 import javafx.application.Platform;
 
 import java.io.*;
@@ -43,7 +45,9 @@ public class SocketClient {
                             true
                     );
 
-            writer.println(username);
+            writer.println(
+                    XmlProtocol.login(username)
+            );
 
         } catch (IOException e) {
 
@@ -58,7 +62,11 @@ public class SocketClient {
     ) {
 
         writer.println(
-                receiver + ":" + message
+                XmlProtocol.chat(
+                        Session.getUsername(),
+                        receiver,
+                        message
+                )
         );
     }
 

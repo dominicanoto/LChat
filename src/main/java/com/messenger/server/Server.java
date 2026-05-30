@@ -1,6 +1,10 @@
 package com.messenger.server;
 
+import com.messenger.database.Database;
+import com.messenger.database.DialogService;
+import com.messenger.database.MessageService;
 import com.messenger.database.UserService;
+import com.messenger.protocol.XmlProtocol;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -54,6 +58,8 @@ public class Server {
     }
 
     private static void runServer() {
+
+        Database.initialize();
 
         log(
                 "Server started on port " + PORT
@@ -144,7 +150,10 @@ public class Server {
         );
 
         broadcast(
-                "SYSTEM_ONLINE:" + username
+                XmlProtocol.presence(
+                        username,
+                        "online"
+                )
         );
     }
 
@@ -177,7 +186,10 @@ public class Server {
         );
 
         broadcast(
-                "SYSTEM_OFFLINE:" + username
+                XmlProtocol.presence(
+                        username,
+                        "offline"
+                )
         );
     }
 
@@ -201,6 +213,19 @@ public class Server {
                 first + " <--> " + second;
 
         conversations.add(conversation);
+
+        int dialogId =
+                DialogService.getOrCreateDialog(
+                        sender,
+                        receiver
+                );
+
+        MessageService.saveMessage(
+                dialogId,
+                sender,
+                receiver,
+                message
+        );
 
         log(
                 sender + " -> " +
@@ -259,8 +284,10 @@ public class Server {
             if (!onlineUsername.equals(username)) {
 
                 client.sendMessage(
-                        "SYSTEM_ONLINE:" +
-                                onlineUsername
+                        XmlProtocol.presence(
+                                onlineUsername,
+                                "online"
+                        )
                 );
             }
         }

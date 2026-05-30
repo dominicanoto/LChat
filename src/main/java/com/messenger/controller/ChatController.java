@@ -9,6 +9,8 @@ import com.messenger.database.MessageService;
 import com.messenger.database.UserService;
 
 import com.messenger.model.User;
+import com.messenger.protocol.XmlProtocol;
+import com.messenger.protocol.XmlProtocol.XmlMessage;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -160,19 +162,21 @@ public class ChatController {
 
         SocketClient.listen(message -> {
 
-            if (message.startsWith(
-                    "SYSTEM_ONLINE:"
+            XmlMessage xmlMessage =
+                    XmlProtocol.parse(message);
+
+            if ("presence".equals(
+                    xmlMessage.type()
             )) {
 
                 String username =
-                        message.replace(
-                                "SYSTEM_ONLINE:",
-                                ""
-                        );
+                        xmlMessage.username();
 
                 OnlineService.setOnline(
                         username,
-                        true
+                        "online".equals(
+                                xmlMessage.status()
+                        )
                 );
 
                 updateDialogs();
@@ -182,45 +186,17 @@ public class ChatController {
                 return;
             }
 
-            if (message.startsWith(
-                    "SYSTEM_OFFLINE:"
+            if (!"chat".equals(
+                    xmlMessage.type()
             )) {
-
-                String username =
-                        message.replace(
-                                "SYSTEM_OFFLINE:",
-                                ""
-                        );
-
-                OnlineService.setOnline(
-                        username,
-                        false
-                );
-
-                updateDialogs();
-
-                updateStatus();
-
-                return;
-            }
-
-            int separator =
-                    message.indexOf(":");
-
-            if (separator == -1) {
                 return;
             }
 
             String sender =
-                    message.substring(
-                            0,
-                            separator
-                    );
+                    xmlMessage.sender();
 
             String text =
-                    message.substring(
-                            separator + 1
-                    );
+                    xmlMessage.text();
 
             User senderUser =
                     UserService.getUser(sender);
@@ -242,19 +218,6 @@ public class ChatController {
 
                 dialogUsers.add(senderUser);
             }
-
-            int dialogId =
-                    DialogService.getOrCreateDialog(
-                            Session.getUsername(),
-                            sender
-                    );
-
-            MessageService.saveMessage(
-                    dialogId,
-                    sender,
-                    Session.getUsername(),
-                    text
-            );
 
             if (selectedUser != null &&
                     selectedUser.getUsername()
@@ -380,13 +343,6 @@ public class ChatController {
 
         String receiver =
                 selectedUser.getUsername();
-
-        MessageService.saveMessage(
-                currentDialogId,
-                sender,
-                receiver,
-                text
-        );
 
         SocketClient.sendMessage(
                 receiver,
