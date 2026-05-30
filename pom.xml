@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <javafx.version>17</javafx.version>
+        <app.mainClass>com.messenger.Main</app.mainClass>
     </properties>
 
     <dependencies>
@@ -57,7 +58,7 @@
 
                 <configuration>
                     <mainClass>
-                        com.messenger.Main
+                        ${app.mainClass}
                     </mainClass>
                 </configuration>
 
@@ -65,5 +66,19 @@
 
         </plugins>
     </build>
+
+    <profiles>
+
+        <profile>
+            <id>server</id>
+
+            <properties>
+                <app.mainClass>
+                    com.messenger.server.ui.ServerApplication
+                </app.mainClass>
+            </properties>
+        </profile>
+
+    </profiles>
 
 </project>

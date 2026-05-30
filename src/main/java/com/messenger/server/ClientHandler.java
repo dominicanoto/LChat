@@ -84,6 +84,12 @@ public class ClientHandler implements Runnable {
                 String formatted =
                         username + ": " + text;
 
+                Server.registerConversation(
+                        username,
+                        receiver,
+                        text
+                );
+
                 Server.sendToUser(
                         receiver,
                         formatted

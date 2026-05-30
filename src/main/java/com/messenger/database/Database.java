@@ -2,6 +2,7 @@ package com.messenger.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -23,6 +24,8 @@ public class Database {
         createDialogsTable();
 
         createMessagesTable();
+
+        migrateMessagesTable();
     }
 
     private static void createUsersTable() {
@@ -77,13 +80,93 @@ public class Database {
 
                     receiver TEXT NOT NULL,
 
-                    text TEXT NOT NULL,
+                    message TEXT NOT NULL,
 
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """;
 
         execute(sql);
+    }
+
+    private static void migrateMessagesTable() {
+
+        if (!columnExists("messages", "message")) {
+
+            execute(
+                    "ALTER TABLE messages " +
+                            "ADD COLUMN message TEXT"
+            );
+
+            if (columnExists("messages", "text")) {
+
+                execute(
+                        "UPDATE messages " +
+                                "SET message = text " +
+                                "WHERE message IS NULL"
+                );
+            }
+        }
+
+        if (!columnExists("messages", "timestamp")) {
+
+            execute(
+                    "ALTER TABLE messages " +
+                            "ADD COLUMN timestamp TEXT"
+            );
+
+            if (columnExists("messages", "created_at")) {
+
+                execute(
+                        "UPDATE messages " +
+                                "SET timestamp = created_at " +
+                                "WHERE timestamp IS NULL"
+                );
+            }
+
+            execute(
+                    "UPDATE messages " +
+                            "SET timestamp = CURRENT_TIMESTAMP " +
+                            "WHERE timestamp IS NULL"
+            );
+        }
+    }
+
+    private static boolean columnExists(
+            String table,
+            String column
+    ) {
+
+        String sql =
+                "PRAGMA table_info(" + table + ")";
+
+        try (
+                Connection connection =
+                        connect();
+
+                Statement statement =
+                        connection.createStatement();
+
+                ResultSet resultSet =
+                        statement.executeQuery(sql)
+        ) {
+
+            while (resultSet.next()) {
+
+                if (column.equals(
+                        resultSet.getString("name")
+                )) {
+
+                    return true;
+                }
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     private static void execute(

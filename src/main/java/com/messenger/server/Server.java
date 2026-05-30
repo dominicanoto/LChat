@@ -10,32 +10,69 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
 
     private static final int PORT = 12345;
 
+    private static volatile boolean running = false;
+
+    private static ServerSocket serverSocket;
+
+    private static ServerEventListener eventListener;
+
     private static final Map<String, ClientHandler>
             clients =
             new ConcurrentHashMap<>();
 
-    public static void main(String[] args) {
+    private static final Set<String>
+            conversations =
+            ConcurrentHashMap.newKeySet();
 
-        System.out.println(
-                "Server started..."
+    public static void main(String[] args) {
+        start();
+    }
+
+    public static synchronized void start() {
+
+        if (running) {
+            log("Server is already running");
+            return;
+        }
+
+        running = true;
+
+        Thread serverThread =
+                new Thread(
+                        Server::runServer,
+                        "Messenger server"
+                );
+
+        serverThread.start();
+    }
+
+    private static void runServer() {
+
+        log(
+                "Server started on port " + PORT
         );
 
         try (ServerSocket serverSocket =
                      new ServerSocket(PORT)) {
 
-            while (true) {
+            Server.serverSocket = serverSocket;
+            status("Running on port " + PORT);
+
+            while (running) {
 
                 Socket socket =
                         serverSocket.accept();
 
-                System.out.println(
-                        "Client connected"
+                log(
+                        "Client connected: " +
+                                socket.getRemoteSocketAddress()
                 );
 
                 ClientHandler clientHandler =
@@ -46,9 +83,48 @@ public class Server {
 
         } catch (IOException e) {
 
-            e.printStackTrace();
+            if (running) {
+                log(
+                        "Server error: " +
+                                e.getMessage()
+                );
+            }
+
+        } finally {
+
+            running = false;
+            status("Stopped");
+            log("Server stopped");
 
         }
+    }
+
+    public static synchronized void stop() {
+
+        running = false;
+
+        try {
+
+            if (serverSocket != null &&
+                    !serverSocket.isClosed()) {
+
+                serverSocket.close();
+            }
+
+        } catch (IOException e) {
+
+            log(
+                    "Server stop error: " +
+                            e.getMessage()
+            );
+        }
+    }
+
+    public static void setEventListener(
+            ServerEventListener listener
+    ) {
+
+        eventListener = listener;
     }
 
     public static void addClient(
@@ -57,6 +133,15 @@ public class Server {
     ) {
 
         clients.put(username, client);
+
+        sendOnlineUsersTo(
+                username,
+                client
+        );
+
+        log(
+                username + " is online"
+        );
 
         broadcast(
                 "SYSTEM_ONLINE:" + username
@@ -67,7 +152,15 @@ public class Server {
             String username
     ) {
 
+        if (username == null) {
+            return;
+        }
+
         clients.remove(username);
+
+        log(
+                username + " is offline"
+        );
 
         String time =
                 LocalDateTime.now()
@@ -88,6 +181,41 @@ public class Server {
         );
     }
 
+    public static void registerConversation(
+            String sender,
+            String receiver,
+            String message
+    ) {
+
+        String first =
+                sender.compareTo(receiver) <= 0
+                        ? sender
+                        : receiver;
+
+        String second =
+                first.equals(sender)
+                        ? receiver
+                        : sender;
+
+        String conversation =
+                first + " <--> " + second;
+
+        conversations.add(conversation);
+
+        log(
+                sender + " -> " +
+                        receiver + ": " +
+                        message
+        );
+
+        if (eventListener != null) {
+
+            eventListener.onConversation(
+                    conversation
+            );
+        }
+    }
+
     public static void sendToUser(
             String username,
             String message
@@ -100,6 +228,12 @@ public class Server {
 
             client.sendMessage(message);
 
+        } else {
+
+            log(
+                    "User is offline: " +
+                            username
+            );
         }
     }
 
@@ -112,5 +246,54 @@ public class Server {
 
             client.sendMessage(message);
         }
+    }
+
+    private static void sendOnlineUsersTo(
+            String username,
+            ClientHandler client
+    ) {
+
+        for (String onlineUsername :
+                clients.keySet()) {
+
+            if (!onlineUsername.equals(username)) {
+
+                client.sendMessage(
+                        "SYSTEM_ONLINE:" +
+                                onlineUsername
+                );
+            }
+        }
+    }
+
+    private static void log(
+            String message
+    ) {
+
+        System.out.println(message);
+
+        if (eventListener != null) {
+
+            eventListener.onLog(message);
+        }
+    }
+
+    private static void status(
+            String message
+    ) {
+
+        if (eventListener != null) {
+
+            eventListener.onStatus(message);
+        }
+    }
+
+    public interface ServerEventListener {
+
+        void onLog(String message);
+
+        void onConversation(String conversation);
+
+        void onStatus(String status);
     }
 }
