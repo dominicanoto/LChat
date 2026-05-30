@@ -106,6 +106,16 @@ public class SocketClient {
 
         try {
 
+            if (writer != null &&
+                    Session.getUsername() != null) {
+
+                writer.println(
+                        XmlProtocol.logout(
+                                Session.getUsername()
+                        )
+                );
+            }
+
             if (socket != null) {
 
                 socket.close();

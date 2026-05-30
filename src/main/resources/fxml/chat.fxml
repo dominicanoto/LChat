@@ -30,9 +30,15 @@
                            text="User"
                            styleClass="current-name"/>
 
-                    <Label fx:id="currentUsernameLabel"
-                           text="@username"
-                           styleClass="current-username"/>
+                    <HBox alignment="CENTER_LEFT"
+                          spacing="6">
+                        <Label text="●"
+                               styleClass="online-dot"/>
+
+                        <Label fx:id="currentUsernameLabel"
+                               text="@username"
+                               styleClass="current-username"/>
+                    </HBox>
                 </VBox>
 
                 <Button fx:id="themeButton"

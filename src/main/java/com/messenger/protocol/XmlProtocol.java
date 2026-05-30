@@ -39,6 +39,18 @@ public class XmlProtocol {
         );
     }
 
+    public static String logout(
+            String username
+    ) {
+
+        return createMessage(
+                "logout",
+                new String[][]{
+                        {"username", username}
+                }
+        );
+    }
+
     public static String presence(
             String username,
             String status

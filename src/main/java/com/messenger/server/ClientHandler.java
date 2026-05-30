@@ -72,6 +72,12 @@ public class ClientHandler implements Runnable {
                 XmlMessage xmlMessage =
                         XmlProtocol.parse(message);
 
+                if ("logout".equals(
+                        xmlMessage.type()
+                )) {
+                    break;
+                }
+
                 if (!"chat".equals(
                         xmlMessage.type()
                 )) {

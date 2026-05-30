@@ -116,6 +116,11 @@
     -fx-text-fill: -muted;
 }
 
+.online-dot {
+    -fx-font-size: 11px;
+    -fx-text-fill: #22c55e;
+}
+
 .search-field {
     -fx-pref-height: 36px;
 }
