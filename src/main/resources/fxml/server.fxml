@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.messenger.server.ui.ServerController"
+            prefWidth="760"
+            prefHeight="460"
+            stylesheets="@../css/style.css"
+            styleClass="server-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              spacing="12"
+              styleClass="server-header">
+
+            <padding>
+                <Insets top="12" right="16" bottom="12" left="16"/>
+            </padding>
+
+            <Label text="Messenger Server"
+                   styleClass="server-title"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Label text="Stopped"
+                   fx:id="statusLabel"
+                   styleClass="server-status"/>
+
+            <Button text="Start"
+                    fx:id="startButton"
+                    styleClass="server-button"/>
+
+            <Button text="Stop"
+                    fx:id="stopButton"
+                    styleClass="server-button-secondary"/>
+
+        </HBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.62"
+                   styleClass="server-content">
+
+            <VBox spacing="8"
+                  styleClass="server-log-panel">
+
+                <padding>
+                    <Insets top="14" right="14" bottom="14" left="14"/>
+                </padding>
+
+                <Label text="Server log"
+                       styleClass="server-section-title"/>
+
+                <TextArea fx:id="logArea"
+                          editable="false"
+                          wrapText="true"
+                          VBox.vgrow="ALWAYS"
+                          styleClass="server-log"/>
+
+            </VBox>
+
+            <VBox spacing="8"
+                  styleClass="server-conversations-panel">
+
+                <padding>
+                    <Insets top="14" right="14" bottom="14" left="14"/>
+                </padding>
+
+                <Label text="List of conversations"
+                       styleClass="server-section-title"/>
+
+                <ListView fx:id="conversationsList"
+                          VBox.vgrow="ALWAYS"
+                          styleClass="server-conversations"/>
+
+            </VBox>
+
+        </SplitPane>
+    </center>
+
+</BorderPane>
