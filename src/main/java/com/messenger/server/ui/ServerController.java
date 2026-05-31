@@ -1,5 +1,6 @@
 package com.messenger.server.ui;
 
+import com.messenger.protocol.XmlProtocol;
 import com.messenger.server.Server;
 
 import javafx.application.Platform;
@@ -11,6 +12,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -34,6 +39,8 @@ public class ServerController {
     private final ObservableList<String>
             conversations =
             FXCollections.observableArrayList();
+
+    private static final int SERVER_PORT = 12345;
 
     @FXML
     public void initialize() {
@@ -82,10 +89,49 @@ public class ServerController {
         );
 
         stopButton.setOnAction(
-                event -> Server.stop()
+                event -> stopServer()
         );
 
         Server.start();
+    }
+
+    private void stopServer() {
+
+        if (Server.isRunning()) {
+
+            Server.stop();
+            return;
+        }
+
+        try (
+                Socket socket =
+                        new Socket(
+                                "localhost",
+                                SERVER_PORT
+                        );
+
+                PrintWriter writer =
+                        new PrintWriter(
+                                new OutputStreamWriter(
+                                        socket.getOutputStream(),
+                                        StandardCharsets.UTF_8
+                                ),
+                                true
+                        )
+        ) {
+
+            writer.println(
+                    XmlProtocol.admin("stop")
+            );
+
+            statusLabel.setText("Stop requested");
+            appendLog("Stop requested for external server");
+
+        } catch (Exception e) {
+
+            statusLabel.setText("Stopped");
+            appendLog("No running server found");
+        }
     }
 
     private void appendLog(

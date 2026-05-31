@@ -30,13 +30,15 @@
         <VBox alignment="CENTER"
               spacing="14"
               maxWidth="330"
+              maxHeight="420"
+              prefHeight="420"
               styleClass="auth-card">
 
             <padding>
                 <Insets top="28" right="36" bottom="34" left="36"/>
             </padding>
 
-            <Label text="Messenger"
+            <Label text="LChat"
                    styleClass="auth-title"/>
 
             <Label text="Sign in to continue"

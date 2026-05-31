@@ -30,6 +30,8 @@
         <VBox alignment="CENTER"
               spacing="14"
               maxWidth="330"
+              maxHeight="460"
+              prefHeight="460"
               styleClass="auth-card">
 
             <padding>

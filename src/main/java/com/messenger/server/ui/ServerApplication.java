@@ -30,7 +30,7 @@ public class ServerApplication extends Application {
                 );
 
         stage.setTitle(
-                "Messenger Server"
+                "LChat Server"
         );
 
         stage.setOnCloseRequest(

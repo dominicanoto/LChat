@@ -18,7 +18,7 @@ public class Main extends Application {
 
         Scene scene = new Scene(loader.load());
 
-        stage.setTitle("Messenger");
+        stage.setTitle("LChat");
         stage.setScene(scene);
         stage.show();
     }

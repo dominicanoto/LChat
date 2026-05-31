@@ -21,7 +21,7 @@
                 <Insets top="12" right="16" bottom="12" left="16"/>
             </padding>
 
-            <Label text="Messenger Server"
+            <Label text="LChat Server"
                    styleClass="server-title"/>
 
             <Region HBox.hgrow="ALWAYS"/>

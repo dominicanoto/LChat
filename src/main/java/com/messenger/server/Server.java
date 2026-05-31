@@ -52,7 +52,7 @@ public class Server {
         Thread serverThread =
                 new Thread(
                         Server::runServer,
-                        "Messenger server"
+                        "LChat server"
                 );
 
         serverThread.start();
@@ -145,6 +145,11 @@ public class Server {
                             e.getMessage()
             );
         }
+    }
+
+    public static boolean isRunning() {
+
+        return running;
     }
 
     public static void setEventListener(

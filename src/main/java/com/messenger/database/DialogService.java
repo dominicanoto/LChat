@@ -64,46 +64,17 @@ public class DialogService {
             return existingDialogId;
         }
 
-        String selectSql = """
-                SELECT id FROM dialogs
-                WHERE
-                (user1=? AND user2=?)
-                OR
-                (user1=? AND user2=?)
-                """;
-
-        try (Connection connection = Database.connect();
-             PreparedStatement select =
-                     connection.prepareStatement(selectSql)) {
-
-            select.setString(1, user1);
-            select.setString(2, user2);
-            select.setString(3, user2);
-            select.setString(4, user1);
-
-            ResultSet resultSet =
-                    select.executeQuery();
-
-            // Dialog exists
-
-            if (resultSet.next()) {
-
-                return resultSet.getInt("id");
-
-            }
-
-            // Create dialog
-
-            String insertSql = """
+        String insertSql = """
                     INSERT INTO dialogs(user1, user2)
                     VALUES(?, ?)
                     """;
 
-            PreparedStatement insert =
-                    connection.prepareStatement(
-                            insertSql,
-                            Statement.RETURN_GENERATED_KEYS
-                    );
+        try (Connection connection = Database.connect();
+             PreparedStatement insert =
+                     connection.prepareStatement(
+                             insertSql,
+                             Statement.RETURN_GENERATED_KEYS
+                     )) {
 
             insert.setString(1, user1);
             insert.setString(2, user2);

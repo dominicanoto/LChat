@@ -50,8 +50,6 @@ public class ClientHandler implements Runnable {
 
         try {
 
-            // First message = XML login
-
             XmlMessage loginMessage =
                     XmlProtocol.parse(
                             reader.readLine()
@@ -59,6 +57,14 @@ public class ClientHandler implements Runnable {
 
             username =
                     loginMessage.username();
+
+            if ("admin".equals(
+                    loginMessage.type()
+            )) {
+
+                handleAdmin(loginMessage);
+                return;
+            }
 
             Server.addClient(
                     username,
@@ -152,6 +158,18 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
 
             e.printStackTrace();
+        }
+    }
+
+    private void handleAdmin(
+            XmlMessage message
+    ) {
+
+        if ("stop".equals(
+                message.action()
+        )) {
+
+            Server.stop();
         }
     }
 }

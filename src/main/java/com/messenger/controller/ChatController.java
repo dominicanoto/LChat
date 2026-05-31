@@ -27,9 +27,11 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -99,6 +101,8 @@ public class ChatController {
             dialogUsers =
             FXCollections.observableArrayList();
 
+    private String lastRenderedDate;
+
     @FXML
     public void initialize() {
 
@@ -159,6 +163,7 @@ public class ChatController {
                         if (empty || user == null) {
 
                             setText(null);
+                            setGraphic(null);
 
                         } else {
 
@@ -174,27 +179,82 @@ public class ChatController {
                                             user.getUsername()
                                     );
 
-                            String status =
-                                    online
-                                            ? "🟢 "
-                                            : "🔴 ";
+                            Label onlineDot =
+                                    new Label("●");
 
-                            String text =
-                                    status +
-                                            user.getName() +
-                                            " (@" +
-                                            user.getUsername() +
-                                            ")";
+                            onlineDot.getStyleClass().add(
+                                    online
+                                            ? "dialog-online-dot"
+                                            : "dialog-offline-dot"
+                            );
+
+                            Label name =
+                                    new Label(user.getName());
+
+                            name.getStyleClass().add(
+                                    "dialog-name"
+                            );
+
+                            int dialogId =
+                                    DialogService.findDialog(
+                                            Session.getUsername(),
+                                            user.getUsername()
+                                    );
+
+                            Label lastMessage =
+                                    new Label(
+                                            MessageService.getLastMessage(
+                                                    dialogId
+                                            )
+                                    );
+
+                            lastMessage.getStyleClass().add(
+                                    "dialog-last-message"
+                            );
+
+                            VBox textBox =
+                                    new VBox(
+                                            3,
+                                            name,
+                                            lastMessage
+                                    );
+
+                            HBox cell =
+                                    new HBox(
+                                            8,
+                                            onlineDot,
+                                            textBox
+                                    );
+
+                            cell.setAlignment(Pos.CENTER_LEFT);
 
                             if (unread > 0) {
 
-                                text +=
-                                        " [" +
-                                                unread +
-                                                "]";
+                                Label unreadLabel =
+                                        new Label(
+                                                String.valueOf(unread)
+                                        );
+
+                                unreadLabel.getStyleClass().add(
+                                        "unread-badge"
+                                );
+
+                                Region spacer =
+                                        new Region();
+
+                                HBox.setHgrow(
+                                        spacer,
+                                        Priority.ALWAYS
+                                );
+
+                                cell.getChildren().addAll(
+                                        spacer,
+                                        unreadLabel
+                                );
                             }
 
-                            setText(text);
+                            setText(null);
+                            setGraphic(cell);
                         }
                     }
                 });
@@ -290,6 +350,10 @@ public class ChatController {
             if (selectedUser != null &&
                     selectedUser.getUsername()
                             .equals(sender)) {
+
+                ensureDateSeparator(
+                        LocalDate.now().toString()
+                );
 
                 addMessageBubble(
                         sender,
@@ -683,6 +747,10 @@ public class ChatController {
                     );
         }
 
+        ensureDateSeparator(
+                LocalDate.now().toString()
+        );
+
         Label statusLabel =
                 addMessageBubble(
                         sender,
@@ -716,7 +784,7 @@ public class ChatController {
         outgoingStatuses
                 .computeIfAbsent(
                         receiver,
-                        key -> new java.util.ArrayList<>()
+                        key -> new ArrayList<>()
                 )
                 .add(statusLabel);
 
@@ -728,6 +796,7 @@ public class ChatController {
     private void loadMessages() {
 
         messagesBox.getChildren().clear();
+        lastRenderedDate = null;
 
         if (currentDialogId == -1) {
             return;
@@ -749,6 +818,10 @@ public class ChatController {
                             Session.getUsername()
                     );
 
+            ensureDateSeparator(
+                    message.date()
+            );
+
             Label statusLabel =
                     addMessageBubble(
                     sender,
@@ -767,11 +840,56 @@ public class ChatController {
                 outgoingStatuses
                         .computeIfAbsent(
                                 selectedUser.getUsername(),
-                                key -> new java.util.ArrayList<>()
+                                key -> new ArrayList<>()
                         )
                         .add(statusLabel);
             }
         }
+    }
+
+    private void ensureDateSeparator(
+            String date
+    ) {
+
+        if (date == null ||
+                date.isBlank() ||
+                date.equals(lastRenderedDate)) {
+            return;
+        }
+
+        lastRenderedDate = date;
+
+        Label label =
+                new Label(
+                        formatDateSeparator(date)
+                );
+
+        label.getStyleClass().add(
+                "date-separator"
+        );
+
+        HBox row =
+                new HBox(label);
+
+        row.setAlignment(Pos.CENTER);
+
+        messagesBox.getChildren().add(row);
+    }
+
+    private String formatDateSeparator(
+            String date
+    ) {
+
+        LocalDate messageDate =
+                LocalDate.parse(date);
+
+        if (messageDate.equals(LocalDate.now())) {
+            return "Today";
+        }
+
+        return messageDate.format(
+                DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        );
     }
 
     private void loadDialogs() {

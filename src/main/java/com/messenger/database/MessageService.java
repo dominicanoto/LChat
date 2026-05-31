@@ -10,6 +10,7 @@ public class MessageService {
             String sender,
             String message,
             String time,
+            String date,
             boolean read
     ) {
     }
@@ -49,50 +50,6 @@ public class MessageService {
         }
     }
 
-    public static List<String> loadMessages(
-            int dialogId
-    ) {
-
-        List<String> messages =
-                new ArrayList<>();
-
-        String sql = """
-                SELECT * FROM messages
-                WHERE dialog_id=?
-                ORDER BY timestamp
-                """;
-
-        try (Connection connection = Database.connect();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, dialogId);
-
-            ResultSet resultSet =
-                    statement.executeQuery();
-
-            while (resultSet.next()) {
-
-                String sender =
-                        resultSet.getString("sender");
-
-                String message =
-                        resultSet.getString("message");
-
-                messages.add(
-                        sender + ": " + message
-                );
-            }
-
-        } catch (SQLException e) {
-
-            e.printStackTrace();
-
-        }
-
-        return messages;
-    }
-
     public static List<MessageRecord> loadMessageRecords(
             int dialogId
     ) {
@@ -103,7 +60,8 @@ public class MessageService {
         String sql = """
                 SELECT sender,
                        message,
-                       time(timestamp) AS message_time,
+                       time(timestamp, 'localtime') AS message_time,
+                       date(timestamp, 'localtime') AS message_date,
                        read_at
                 FROM messages
                 WHERE dialog_id=?
@@ -133,6 +91,7 @@ public class MessageService {
                                 time == null || time.length() < 5
                                         ? ""
                                         : time.substring(0, 5),
+                                resultSet.getString("message_date"),
                                 resultSet.getString("read_at") != null
                         )
                 );
@@ -144,6 +103,43 @@ public class MessageService {
         }
 
         return messages;
+    }
+
+    public static String getLastMessage(
+            int dialogId
+    ) {
+
+        if (dialogId == -1) {
+            return "";
+        }
+
+        String sql = """
+                SELECT message FROM messages
+                WHERE dialog_id=?
+                ORDER BY timestamp DESC
+                LIMIT 1
+                """;
+
+        try (Connection connection = Database.connect();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setInt(1, dialogId);
+
+            ResultSet resultSet =
+                    statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                return resultSet.getString("message");
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+
+        return "";
     }
 
     public static boolean hasUnreadMessages(
