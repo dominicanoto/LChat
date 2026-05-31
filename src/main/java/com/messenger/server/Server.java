@@ -6,6 +6,7 @@ import com.messenger.database.MessageService;
 import com.messenger.database.UserService;
 import com.messenger.protocol.XmlProtocol;
 
+import java.net.BindException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -61,14 +62,17 @@ public class Server {
 
         Database.initialize();
 
-        log(
-                "Server started on port " + PORT
-        );
+        boolean externalServerDetected = false;
 
         try (ServerSocket serverSocket =
                      new ServerSocket(PORT)) {
 
             Server.serverSocket = serverSocket;
+
+            log(
+                    "Server started on port " + PORT
+            );
+
             status("Running on port " + PORT);
 
             while (running) {
@@ -87,6 +91,20 @@ public class Server {
                 new Thread(clientHandler).start();
             }
 
+        } catch (BindException e) {
+
+            externalServerDetected = true;
+            running = false;
+
+            status(
+                    "Already running on port " + PORT
+            );
+
+            log(
+                    "Server is already running on port " +
+                            PORT
+            );
+
         } catch (IOException e) {
 
             if (running) {
@@ -98,9 +116,12 @@ public class Server {
 
         } finally {
 
-            running = false;
-            status("Stopped");
-            log("Server stopped");
+            if (!externalServerDetected) {
+
+                running = false;
+                status("Stopped");
+                log("Server stopped");
+            }
 
         }
     }
